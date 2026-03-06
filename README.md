@@ -11,6 +11,7 @@
 
 ## 유의사항
 - 본 프로그램 사용에 따른 모든 책임은 사용자 본인에게 있습니다.
+- 안정성을 위해 https://learn.hoseo.ac.kr/ 메인 페이지에서만 작동하며, 좌측 사이드바에 호서 LMS+ 탭을 누르시면 대시보드가 표시됩니다.
 
 ## 이미지
 ![image1](https://github.com/dohwi/hoseo-lms-plus/blob/main/assets/1.png?raw=true)
