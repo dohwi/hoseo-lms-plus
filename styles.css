@@ -66,7 +66,7 @@
     color: var(--lms-primary);
     background-color: #eef5fa;
     border: 1px solid #cce5ff;
-    border-radius: 16px;
+    border-radius: 4px;
     white-space: nowrap;
 }
 
@@ -223,11 +223,18 @@
     padding-left: 15px;
 }
 
+.lms-th-center {
+    text-align: center;
+}
+
 .lms-td-course {
     font-weight: bold;
     color: var(--lms-primary);
-    text-align: left;
-    padding-left: 15px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1.1em;
+    background-color: #ffffff;
+    border-right: 1px solid var(--lms-border-light);
 }
 
 .lms-td-left {
@@ -265,11 +272,16 @@
     align-items: center;
 }
 
-.lms-incomplete-sub-title {
-    color: var(--lms-danger-dark);
+.lms-td-options {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.lms-extra-info {
+    color: #0056b3;
+    font-size: 0.9em;
     font-weight: bold;
-    margin-bottom: 15px;
-    font-size: 15px;
+    white-space: nowrap;
 }
 
 .lms-all-complete {
