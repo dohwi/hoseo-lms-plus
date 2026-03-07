@@ -1,0 +1,284 @@
+/* ===== 호서 LMS+ 스타일시트 ===== */
+:root {
+    --lms-primary: #1a5e9a;
+    --lms-primary-dark: #003366;
+    --lms-border: #dee2e6;
+    --lms-border-light: #f0f0f0;
+    --lms-bg-light: #f8f9fa;
+    --lms-success: #28a745;
+    --lms-danger: #d9534f;
+    --lms-danger-dark: #c9302c;
+    --lms-danger-border: #f5c6cb;
+    --lms-danger-light: #fdf1f2;
+    --lms-row-success: #f6fdf8;
+    --lms-row-danger: #fff8f8;
+    --lms-text: #333;
+    --lms-text-light: #777;
+}
+
+.lms-dashboard {
+    padding: 20px;
+    background: transparent;
+    margin-bottom: 20px;
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+}
+
+.lms-card {
+    background: white;
+    border: 1px solid var(--lms-border);
+}
+
+.lms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    margin-bottom: 0;
+}
+
+.lms-course-list {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 30px;
+    margin-bottom: 25px;
+    border-top: none;
+}
+
+.lms-course-list-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--lms-text-light);
+    white-space: nowrap;
+}
+
+.lms-course-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lms-course-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--lms-primary);
+    background-color: #eef5fa;
+    border: 1px solid #cce5ff;
+    border-radius: 16px;
+    white-space: nowrap;
+}
+
+.lms-title {
+    color: var(--lms-primary);
+    margin: 0;
+    font-weight: bold;
+    font-size: 22px;
+}
+
+.lms-btn {
+    font-weight: bold;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lms-loading {
+    text-align: center;
+    padding: 100px 0;
+}
+
+.lms-loading-title {
+    color: var(--lms-primary);
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.lms-loading-sub {
+    color: var(--lms-text-light);
+    margin-top: 15px;
+}
+
+.lms-progress-container {
+    width: 300px;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.lms-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--lms-primary), #2980b9);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.lms-week-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f4f6f8;
+}
+
+.lms-nav-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 20px;
+    color: var(--lms-primary);
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.lms-nav-btn.disabled {
+    color: #ddd;
+    cursor: not-allowed;
+}
+
+.lms-week-title {
+    color: var(--lms-text);
+    font-weight: bold;
+    margin: 0 0 8px 0;
+    font-size: 24px;
+}
+
+.lms-period-badge {
+    font-size: 13px;
+    color: var(--lms-primary);
+    background-color: #eef5fa;
+    display: inline-block;
+    padding: 5px 14px;
+    border: 1px solid #cce5ff;
+    font-weight: bold;
+}
+
+.lms-section-title {
+    color: var(--lms-text);
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 17px;
+    display: inline-block;
+}
+
+.lms-section-icon {
+    color: var(--lms-primary);
+    margin-right: 5px;
+}
+
+.lms-table {
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    background: white;
+}
+
+.lms-table th,
+.lms-table td {
+    vertical-align: middle !important;
+}
+
+.lms-table th {
+    font-weight: bold;
+}
+
+.lms-table img {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.lms-table a {
+    color: var(--lms-primary);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.lms-table a:hover {
+    text-decoration: underline;
+    color: var(--lms-primary-dark);
+}
+
+.lms-thead-row {
+    background-color: var(--lms-bg-light);
+}
+
+.lms-thead-danger {
+    background-color: var(--lms-row-danger);
+}
+
+.lms-thead-danger th {
+    color: var(--lms-danger-dark);
+}
+
+.lms-th-left {
+    text-align: left;
+    padding-left: 15px;
+}
+
+.lms-td-course {
+    font-weight: bold;
+    color: var(--lms-primary);
+    text-align: left;
+    padding-left: 15px;
+}
+
+.lms-td-left {
+    text-align: left;
+    padding-left: 15px;
+}
+
+.lms-td-week {
+    font-weight: bold;
+    color: #555;
+}
+
+.lms-status-ok {
+    color: var(--lms-success);
+    font-weight: bold;
+}
+
+.lms-status-fail {
+    color: var(--lms-danger);
+    font-weight: bold;
+}
+
+.lms-incomplete-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--lms-danger-light);
+}
+
+.lms-incomplete-title {
+    color: var(--lms-danger);
+    font-weight: bold;
+    margin: 0;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.lms-incomplete-sub-title {
+    color: var(--lms-danger-dark);
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.lms-all-complete {
+    color: var(--lms-success);
+    font-weight: bold;
+    margin: 0;
+    font-size: 20px;
+}
+
+#lms-custom-dashboard td {
+    border-bottom: 1px solid var(--lms-border);
+}
