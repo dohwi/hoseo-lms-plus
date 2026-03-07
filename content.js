@@ -22,6 +22,20 @@
     /** XSS 방어: script 태그 제거 */
     const sanitize = (html) => html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 
+    /** Promise 병렬 배열 실행 (동시성 제한 - Rate Limit 방지용) */
+    const runWithConcurrency = async (tasks, limit = 5) => {
+        const results = [];
+        const executing = [];
+        for (const task of tasks) {
+            const p = Promise.resolve().then(() => task());
+            results.push(p);
+            const e = p.catch(() => { }).then(() => executing.splice(executing.indexOf(e), 1));
+            executing.push(e);
+            if (executing.length >= limit) await Promise.race(executing);
+        }
+        return Promise.all(results);
+    };
+
     /** 유형 판별 */
     const isVideoType = (type) => type.includes('동영상') || type.includes('VOD') || type.includes('Page');
     const isAssignType = (type) => type.includes('과제') || type.includes('퀴즈') || type.includes('Assignment') || type.includes('Quiz');
@@ -140,7 +154,7 @@
                         if (!materialHtml) continue;
 
                         const statusText = statusTd.innerText.trim().toUpperCase();
-                        const isCompleted = statusText.includes('O') || statusText.includes('○') || statusText.includes('출석');
+                        const isCompleted = statusText.includes('O');
                         const statusInner = sanitize(statusTd.innerHTML);
 
                         items.push({
@@ -196,10 +210,10 @@
                         titleTd.querySelectorAll('a').forEach(a => a.target = '_blank');
 
                         const submitText = submitTd ? submitTd.textContent.replace(/\u00a0/g, ' ').trim() : '';
-                        const isCompleted = submitText.includes('완료') || submitText.includes('제출됨') || submitText.includes('채점') || (submitText.includes('제출') && !submitText.includes('미제출'));
+                        const isCompleted = submitText.includes('제출 완료');
                         const submitInner = submitTd ? sanitize(submitTd.innerHTML) : '-';
 
-                        assignPromises.push((async () => {
+                        assignPromises.push(async () => {
                             let localIsNeutral = false;
                             let localSubmitInner = submitInner;
                             let localIsCompleted = isCompleted;
@@ -233,9 +247,9 @@
                                 isCompleted: localIsCompleted,
                                 isNeutral: localIsNeutral
                             };
-                        })());
+                        });
                     }
-                    const resolvedAssigns = await Promise.all(assignPromises);
+                    const resolvedAssigns = await runWithConcurrency(assignPromises, 5);
                     assigns.push(...resolvedAssigns);
                 }
             } catch (e) { console.error('[LMS+] 과제 파싱 오류 (course ' + courseId + ')', e); }
@@ -277,14 +291,21 @@
                         let isCompleted = gradeText !== '' && gradeText !== '-';
                         const gradeInner = gradeTd ? sanitize(gradeTd.innerHTML) : '-';
 
-                        quizPromises.push((async () => {
+                        let finalStatusText = isCompleted ? '제출됨' : '미응시';
+
+                        quizPromises.push(async () => {
                             if (!isCompleted && quizViewUrl) {
                                 try {
                                     const viewRes = await fetch(quizViewUrl);
                                     if (viewRes.ok) {
                                         const viewText = await viewRes.text();
-                                        if (viewText.includes('제출됨') || viewText.includes('종료됨') || viewText.includes('Finished')) {
+                                        const detailsMatch = viewText.match(/class=(?:'|")?statedetails(?:'|")?[^>]*>\s*([^<]*제출됨[^<]*)\s*</);
+
+                                        if (detailsMatch && detailsMatch[1]) {
                                             isCompleted = true;
+                                            finalStatusText = detailsMatch[1].trim();
+                                        } else {
+                                            isCompleted = false;
                                         }
                                     }
                                 } catch (e) {
@@ -297,14 +318,14 @@
                                 titleHtml: `<span style="color:#007bff;font-weight:bold;margin-right:4px">[퀴즈]</span>` + sanitize(titleTd.innerHTML),
                                 dueDateHtml: dueTd ? sanitize(dueTd.innerHTML) : '-',
                                 submitStatusHtml: isCompleted
-                                    ? `<span class="lms-status-ok">제출(응시)완료</span>`
+                                    ? `<span class="lms-status-ok">${sanitize(finalStatusText)}</span>`
                                     : `<span class="lms-status-fail">미응시</span>`,
                                 gradeHtml: isCompleted ? gradeInner : '-',
                                 isCompleted
                             };
-                        })());
+                        });
                     }
-                    const resolvedQuizzes = await Promise.all(quizPromises);
+                    const resolvedQuizzes = await runWithConcurrency(quizPromises, 5);
                     assigns.push(...resolvedQuizzes);
                 }
             } catch (e) { console.error('[LMS+] 퀴즈 파싱 오류 (course ' + courseId + ')', e); }
@@ -352,16 +373,20 @@
                         const displayOpts = actEl.querySelector('.displayoptions');
                         const optionsHtml = displayOpts ? sanitize(displayOpts.innerHTML) : '';
 
+                        const isIgnoredType = type.includes('파일') || type.includes('토론') || type.includes('File') || type.includes('Forum');
+
                         let statusHtml = '-';
                         let isCompleted = false;
-                        const badgeContainer = actEl.querySelector('.badge-completion');
-                        if (badgeContainer) {
-                            const titleAttr = badgeContainer.getAttribute('title') || '';
-                            if (titleAttr.includes('완료함')) {
-                                statusHtml = `<span class="lms-status-ok">완료</span>`;
-                                isCompleted = true;
-                            } else if (titleAttr.includes('완료하지 못함') || titleAttr.includes('완료하지 않음')) {
-                                statusHtml = `<span class="lms-status-fail">미완료</span>`;
+                        if (!isIgnoredType) {
+                            const badgeContainer = actEl.querySelector('.badge-completion');
+                            if (badgeContainer) {
+                                const titleAttr = badgeContainer.getAttribute('title') || '';
+                                if (titleAttr.includes('완료함')) {
+                                    statusHtml = `<span class="lms-status-ok">완료</span>`;
+                                    isCompleted = true;
+                                } else if (titleAttr.includes('완료하지 못함') || titleAttr.includes('완료하지 않음')) {
+                                    statusHtml = `<span class="lms-status-fail">미완료</span>`;
+                                }
                             }
                         }
 
@@ -392,8 +417,8 @@
                         }
 
                         // 확실한 이수 여부 확인이 가능한 항목 외에는 Neutral 처리
-                        let finalIsNeutral = isNeutral || !(isAssignType(type) || (isVideoType(type) && isMatchedVideo));
-                        if (finalIsNeutral && statusHtml === '-') statusHtml = '-';
+                        let finalIsNeutral = isNeutral || isIgnoredType || !(isAssignType(type) || (isVideoType(type) && isMatchedVideo));
+                        if (finalIsNeutral) statusHtml = '-';
 
                         activities.push({
                             courseId, courseName: courseTitleStr, weekNum, periodStr, type,
