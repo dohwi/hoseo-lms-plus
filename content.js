@@ -283,7 +283,10 @@
                         if (!titleTd || !titleTd.textContent.trim()) continue;
 
                         const aEl = titleTd.querySelector('a');
-                        const quizViewUrl = aEl ? aEl.href : null;
+                        const rawHref = aEl ? aEl.getAttribute('href') : null;
+                        const quizViewUrl = rawHref
+                            ? (rawHref.startsWith('http') ? rawHref : `https://learn.hoseo.ac.kr/mod/quiz/${rawHref}`)
+                            : null;
 
                         titleTd.querySelectorAll('a').forEach(a => a.target = '_blank');
 
@@ -299,12 +302,29 @@
                                     const viewRes = await fetch(quizViewUrl);
                                     if (viewRes.ok) {
                                         const viewText = await viewRes.text();
-                                        const detailsMatch = viewText.match(/class=(?:'|")?statedetails(?:'|")?[^>]*>\s*([^<]*제출됨[^<]*)\s*</);
+                                        try {
+                                            const vDoc = globalParser.parseFromString(viewText, 'text/html');
+                                            // 1. 가장 정확한 날짜 상세칸(statedetails) 우선 분석
+                                            const details = vDoc.querySelector('.quizattemptsummary .statedetails');
 
-                                        if (detailsMatch && detailsMatch[1]) {
-                                            isCompleted = true;
-                                            finalStatusText = detailsMatch[1].trim();
-                                        } else {
+                                            if (details && (details.textContent.includes('제출됨') || details.textContent.includes('종료'))) {
+                                                isCompleted = true;
+                                                finalStatusText = details.textContent.trim();
+                                            } else {
+                                                // 2. 시도 요약표 전체에서 제출됨/종료됨 키워드 확인
+                                                const summaryTable = vDoc.querySelector('.quizattemptsummary');
+                                                if (summaryTable && (summaryTable.textContent.includes('제출됨') || summaryTable.textContent.includes('종료됨'))) {
+                                                    isCompleted = true;
+                                                    finalStatusText = '제출됨';
+                                                } else if (viewText.includes('퀴즈 재응시') || viewText.includes('re-attempt')) {
+                                                    // 3. '퀴즈 재응시' 버튼이 있으면 최소 1회 이상 응시한 것
+                                                    isCompleted = true;
+                                                    finalStatusText = '응시 완료';
+                                                } else {
+                                                    isCompleted = false;
+                                                }
+                                            }
+                                        } catch (e) {
                                             isCompleted = false;
                                         }
                                     }
@@ -660,6 +680,26 @@
             const week = sortedWeeks[weekIdx];
             const activities = dedupActivities(activitiesByWeek.get(week) || []);
             const periodStr = (itemsByWeek.get(week)?.[0] || assignsByWeek.get(week)?.[0] || activities[0])?.periodStr || '';
+
+            // 아무 자료가 없는 과목도 표기되도록 추가
+            const coursesWithActivities = new Set(activities.map(a => a.courseId));
+            for (const course of courseNames) {
+                if (!coursesWithActivities.has(course.courseId)) {
+                    activities.push({
+                        courseId: course.courseId,
+                        courseName: course.courseName,
+                        weekNum: week,
+                        periodStr: periodStr,
+                        type: '-',
+                        nameHtml: '<span style="color:#aaa;">등록된 학습 자료나 활동이 없습니다.</span>',
+                        optionsHtml: '-',
+                        statusHtml: '-',
+                        isCompleted: true,
+                        isNeutral: true
+                    });
+                }
+            }
+
             const canPrev = weekIdx > 0, canNext = weekIdx < sortedWeeks.length - 1;
 
             lc.innerHTML = [
