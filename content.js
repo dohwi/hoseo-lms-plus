@@ -12,12 +12,14 @@
     const CACHE_TTL = 5 * 60 * 1000; // 5분
     const MAX_TAB_RETRIES = 10;
     const LOGIN_PATTERN = '/login/';
+    const OTHER_WEEK_NUM = 0;
     let savedCourseIds = null;
     const globalParser = new DOMParser();
 
     // ── 유틸리티 ──
     const stripHtml = (html) => html.replace(/<[^>]*>?/g, '').trim();
     const stripBr = (html) => html.replace(/<br\s*\/?>/gi, '').trim();
+    const getWeekLabel = (weekNum) => weekNum === OTHER_WEEK_NUM ? '기타' : `${weekNum}주차`;
 
     /** XSS 방어: script 태그 제거 */
     const sanitize = (html) => html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
@@ -142,11 +144,22 @@
                         if (len === 0) continue;
 
                         let materialTd, reqTimeTd, readTimeTd, statusTd;
-                        if (len === 7) {
-                            currentWeekNum = parseInt(tds[0].innerText.trim(), 10);
-                            currentPeriod = periodMap[currentWeekNum] || '';
-                            materialTd = tds[1]; reqTimeTd = tds[2]; readTimeTd = tds[4]; statusTd = tds[5];
+                        if (len === 7 || len === 6) {
+                            const parsedWeekNum = parseInt(tds[0].innerText.trim(), 10);
+                            if (len === 7) {
+                                currentWeekNum = Number.isFinite(parsedWeekNum) ? parsedWeekNum : OTHER_WEEK_NUM;
+                                currentPeriod = currentWeekNum === OTHER_WEEK_NUM ? '기타' : (periodMap[currentWeekNum] || '');
+                                materialTd = tds[1]; reqTimeTd = tds[2]; readTimeTd = tds[4]; statusTd = tds[5];
+                            } else {
+                                currentWeekNum = OTHER_WEEK_NUM;
+                                currentPeriod = '기타';
+                                materialTd = tds[1]; reqTimeTd = tds[2]; readTimeTd = tds[4]; statusTd = tds[5];
+                            }
                         } else if (len === 5) {
+                            if (currentWeekNum == null) {
+                                currentWeekNum = OTHER_WEEK_NUM;
+                                currentPeriod = '기타';
+                            }
                             materialTd = tds[0]; reqTimeTd = tds[1]; readTimeTd = tds[3]; statusTd = tds[4];
                         } else continue;
 
@@ -154,7 +167,7 @@
                         if (!materialHtml) continue;
 
                         const statusText = statusTd.innerText.trim().toUpperCase();
-                        const isCompleted = statusText.includes('O');
+                        const isCompleted = statusText.includes('O') || statusText.includes('100%') || statusText.includes('완료');
                         const statusInner = sanitize(statusTd.innerHTML);
 
                         items.push({
@@ -368,16 +381,15 @@
         if (viewRes?.ok) {
             try {
                 const viewDoc = globalParser.parseFromString(await viewRes.text(), 'text/html');
-                const listSections = viewDoc.querySelectorAll('ul.weeks > li.section.main');
+                const listSections = viewDoc.querySelectorAll('li.section.main');
                 listSections.forEach(section => {
                     const titleEl = section.querySelector('h3.sectionname');
                     if (!titleEl) return;
                     const secTitle = titleEl.textContent.trim();
                     const weekMatch = secTitle.match(/(\d+)주차/);
-                    if (!weekMatch) return;
-                    const weekNum = parseInt(weekMatch[1], 10);
+                    const weekNum = weekMatch ? parseInt(weekMatch[1], 10) : OTHER_WEEK_NUM;
                     const pMatch = secTitle.match(/(\[[^\]]+\])/);
-                    const periodStr = pMatch ? pMatch[1] : (periodMap[weekNum] || '');
+                    const periodStr = weekMatch ? (pMatch ? pMatch[1] : (periodMap[weekNum] || '')) : '기타';
 
                     section.querySelectorAll('li.activity').forEach(actEl => {
                         const iconEl = actEl.querySelector('.activityicon');
@@ -439,6 +451,9 @@
                         // 확실한 이수 여부 확인이 가능한 항목 외에는 Neutral 처리
                         let finalIsNeutral = isNeutral || isIgnoredType || !(isAssignType(type) || (isVideoType(type) && isMatchedVideo));
                         if (finalIsNeutral) statusHtml = '-';
+
+                        // 0주차(기타)에 속하는 단순 게시판/자료는 화면을 혼잡하게 하므로 제외
+                        if (weekNum === OTHER_WEEK_NUM && finalIsNeutral) return;
 
                         activities.push({
                             courseId, courseName: courseTitleStr, weekNum, periodStr, type,
@@ -545,7 +560,7 @@
         <div class="lms-week-nav">
             <button id="dash-prev-btn" class="lms-nav-btn ${canPrev ? '' : 'disabled'}">&lt;</button>
             <div style="text-align:center;width:250px">
-                <h3 class="lms-week-title">${week}주차</h3>
+                <h3 class="lms-week-title">${getWeekLabel(week)}</h3>
                 <div class="lms-period-badge">${periodStr}</div>
             </div>
             <button id="dash-next-btn" class="lms-nav-btn ${canNext ? '' : 'disabled'}">&gt;</button>
@@ -578,7 +593,7 @@
 
             const incCols = [
                 COL_COURSE,
-                (d) => `<td class="lms-td-week">${d.weekNum}주차</td>`,
+                (d) => `<td class="lms-td-week">${getWeekLabel(d.weekNum)}</td>`,
                 COL_TYPE, COL_NAME, COL_OPTIONS, COL_STATUS
             ];
 
@@ -684,7 +699,7 @@
             // 아무 자료가 없는 과목도 표기되도록 추가
             const coursesWithActivities = new Set(activities.map(a => a.courseId));
             for (const course of courseNames) {
-                if (!coursesWithActivities.has(course.courseId)) {
+                if (week !== OTHER_WEEK_NUM && !coursesWithActivities.has(course.courseId)) {
                     activities.push({
                         courseId: course.courseId,
                         courseName: course.courseName,
@@ -757,7 +772,8 @@
             if (dm[3] - 1 < dm[1] - 1) { e.setFullYear(yr + 1); if (today.getMonth() < dm[1] - 1) s.setFullYear(yr + 1); }
             if (today >= s && today <= e) return i;
         }
-        return 0;
+        const firstRegularWeekIdx = sortedWeeks.findIndex((w) => w !== OTHER_WEEK_NUM);
+        return firstRegularWeekIdx >= 0 ? firstRegularWeekIdx : 0;
     };
 
     // ── 사이드바 탭 추가 ──
