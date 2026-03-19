@@ -36,6 +36,12 @@
     margin-bottom: 0;
 }
 
+.lms-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .lms-course-list {
     display: flex;
     align-items: center;
@@ -84,6 +90,14 @@
     transition: all 0.2s;
 }
 
+.lms-btn:focus-visible,
+.lms-nav-btn:focus-visible,
+.lms-course-chip:focus-visible,
+#lms-calendar-tab a:focus-visible {
+    outline: 3px solid rgba(26, 94, 154, 0.25);
+    outline-offset: 2px;
+}
+
 .lms-loading {
     text-align: center;
     padding: 100px 0;
@@ -117,6 +131,12 @@
     transition: width 0.3s ease;
 }
 
+.lms-week-card {
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
 .lms-week-nav {
     display: flex;
     justify-content: center;
@@ -124,6 +144,11 @@
     padding-bottom: 20px;
     margin-bottom: 25px;
     border-bottom: 2px solid #f4f6f8;
+}
+
+.lms-week-center {
+    text-align: center;
+    width: 250px;
 }
 
 .lms-nav-btn {
@@ -137,7 +162,7 @@
     transition: color 0.2s;
 }
 
-.lms-nav-btn.disabled {
+.lms-nav-btn:disabled {
     color: #ddd;
     cursor: not-allowed;
 }
@@ -165,6 +190,11 @@
     margin-bottom: 15px;
     font-size: 17px;
     display: inline-block;
+}
+
+.lms-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 30px;
 }
 
 .lms-section-icon {
@@ -237,6 +267,11 @@
     border-right: 1px solid var(--lms-border-light);
 }
 
+.lms-td-course a {
+    color: #0056b3;
+    text-decoration: none;
+}
+
 .lms-td-left {
     text-align: left;
     padding-left: 15px;
@@ -272,6 +307,12 @@
     align-items: center;
 }
 
+.lms-incomplete-card {
+    padding: 30px;
+    margin-bottom: 50px;
+    text-align: left;
+}
+
 .lms-td-options {
     font-size: 0.9em;
     color: #666;
@@ -291,6 +332,93 @@
     font-size: 20px;
 }
 
+.lms-row-success {
+    background-color: var(--lms-row-success);
+}
+
+.lms-row-danger {
+    background-color: var(--lms-row-danger);
+}
+
+.lms-row-neutral {
+    background-color: #fff;
+}
+
+.lms-message-card {
+    padding: 40px;
+    text-align: center;
+}
+
+.lms-message-title {
+    margin: 0 0 12px;
+}
+
+.lms-message-body {
+    margin: 0;
+    color: var(--lms-text-light);
+}
+
+.lms-message-danger .lms-message-title {
+    color: var(--lms-danger);
+}
+
+.lms-message-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.lms-warning-card {
+    padding: 18px 24px;
+    margin-bottom: 18px;
+    border-color: #ffe3a0;
+    background: #fffaf0;
+}
+
+.lms-warning-title {
+    margin: 0 0 10px;
+    color: #8a5a00;
+    font-size: 15px;
+}
+
+.lms-warning-list {
+    margin: 0;
+    padding-left: 18px;
+    color: #8a5a00;
+}
+
 #lms-custom-dashboard td {
     border-bottom: 1px solid var(--lms-border);
+}
+
+@media (max-width: 768px) {
+    .lms-header,
+    .lms-course-list,
+    .lms-week-nav {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .lms-header-actions,
+    .lms-message-actions {
+        flex-direction: column;
+    }
+
+    .lms-progress-container,
+    .lms-week-center {
+        width: 100%;
+    }
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
