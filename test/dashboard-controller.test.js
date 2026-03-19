@@ -85,3 +85,92 @@ test('dashboard controller renders dashboard from fetched data', async function 
 
     controller.cleanup();
 });
+
+test('dashboard refresh reuses saved course ids when dashboard is already mounted', async function () {
+    const dom = new JSDOM('<!doctype html><html><body><main><div class="lists"><div class="course" data-id="101"></div></div></main><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
+    global.window = dom.window;
+    global.document = dom.window.document;
+
+    let fetchCalls = 0;
+    global.HoseoLmsPlusUi = {
+        buildHostMount: function (doc) {
+            const host = doc.querySelector('main');
+            let mount = doc.getElementById(core.SELECTORS.dashboardMountId);
+            if (mount) return { mount: mount, host: host };
+            mount = doc.createElement('section');
+            mount.id = core.SELECTORS.dashboardMountId;
+            while (host.firstChild) host.removeChild(host.firstChild);
+            host.appendChild(mount);
+            return { mount: mount, host: host };
+        },
+        renderLoading: function (doc, mount) {
+            mount.textContent = 'loading';
+        },
+        renderMessage: function (doc, mount, title) {
+            mount.setAttribute('data-message', title);
+        },
+        renderDashboard: function (doc, mount, state) {
+            mount.innerHTML = '';
+            const button = doc.createElement('button');
+            button.id = 'lms-refresh-btn';
+            button.addEventListener('click', state.handlers.onRefresh);
+            mount.appendChild(button);
+            mount.setAttribute('data-courses', String(state.courseNames.length));
+        },
+        restoreHost: function () {},
+        updateProgress: function () {}
+    };
+    global.HoseoLmsPlusDataService = {
+        create: function () {
+            return {
+                fetchAllCourseData: async function (courseIds) {
+                    fetchCalls += 1;
+                    return {
+                        allItems: [{ weekNum: 1, periodStr: '[03.01~03.07]' }],
+                        allAssigns: [],
+                        allActivities: [{ courseId: courseIds[0], courseName: '테스트 강의', weekNum: 1, periodStr: '[03.01~03.07]', type: '동영상', href: '/video', nameHtml: '<span>OT 영상</span>', optionsHtml: '-', statusText: '완료', isCompleted: true, isNeutral: false }],
+                        allCourseNames: [{ courseName: '테스트 강의', courseId: courseIds[0] }],
+                        warnings: [],
+                        sessionExpired: false
+                    };
+                }
+            };
+        }
+    };
+
+    delete require.cache[require.resolve('../lib/dashboard-controller.js')];
+    const refreshedDashboardController = require('../lib/dashboard-controller.js');
+
+    const controller = refreshedDashboardController.create({
+        document: dom.window.document,
+        extensionStorage: null,
+        runtime: {
+            getRequestQueue: function () {
+                return {
+                    enqueue: function (task) {
+                        return task({});
+                    }
+                };
+            },
+            resetRequestQueue: function () {}
+        },
+        storage: {
+            getItem: function () { return null; },
+            setItem: function () {},
+            removeItem: function () {},
+            key: function () { return null; },
+            length: 0
+        }
+    });
+
+    controller.replacePageContent(false);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+
+    dom.window.document.getElementById('lms-refresh-btn').click();
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+
+    const mount = dom.window.document.getElementById(core.SELECTORS.dashboardMountId);
+    assert.equal(fetchCalls, 2);
+    assert.equal(mount.getAttribute('data-message'), null);
+    assert.equal(mount.getAttribute('data-courses'), '1');
+});
