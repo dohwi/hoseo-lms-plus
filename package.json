@@ -1,0 +1,14 @@
+{
+  "name": "hoseo-lms-plus",
+  "private": true,
+  "version": "1.2.0",
+  "scripts": {
+    "lint": "eslint . --ext .js",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "eslint": "^9.23.0",
+    "globals": "^15.15.0",
+    "jsdom": "^26.0.0"
+  }
+}
