@@ -1,10 +1,11 @@
 {
   "name": "hoseo-lms-plus",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "scripts": {
     "lint": "eslint . --ext .js",
-    "test": "node --test"
+    "test": "node --test",
+    "build": "rm -rf dist && mkdir -p dist && cp -r manifest.json content.js styles.css lib/ icon*.png dist/ && cd dist && zip -r hoseo-lms-plus-v$(node -p \"require('../package.json').version\").zip manifest.json content.js styles.css lib/ icon*.png"
   },
   "devDependencies": {
     "eslint": "^9.23.0",
