@@ -175,6 +175,7 @@
     font-size: 13px;
     color: var(--lms-text-light);
     line-height: 1.5;
+    margin-left: 4px;
 }
 
 .lms-btn {
