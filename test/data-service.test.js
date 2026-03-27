@@ -97,3 +97,72 @@ test('data service keeps passive resources neutral and matches watched videos mo
 
     assert.equal(otherWeekUrl, undefined);
 });
+
+test('data service falls back to course-wide matching when week parsing differs', async function () {
+    const attendanceHtml = [
+        '<html><head><title>객체지향프로그래밍 학습관리시스템(LMS)</title></head><body>',
+        '<div id="modal-coursemos-sections"><div class="section-item"><a title="4주차 [3월24일 - 3월30일]"></a></div></div>',
+        '<div class="local-ubonattend"><table class="table-coursemos"><tbody>',
+        '<tr><td>5</td><td><a href="/mod/vod/view.php?id=1052475">4주차 동영상1</a></td><td>39:50</td><td>-</td><td>39:50</td><td>완료</td><td>-</td></tr>',
+        '</tbody></table></div>',
+        '</body></html>'
+    ].join('');
+
+    const assignHtml = '<html><body><table class="generaltable"><tbody></tbody></table></body></html>';
+    const quizHtml = [
+        '<html><body><table class="generaltable"><tbody>',
+        '<tr><td>5주차 [3월31일 - 4월6일]</td><td><a href="view.php?id=1052482">4주차 퀴즈</a></td><td>2026-03-31 12:15</td><td></td></tr>',
+        '</tbody></table></body></html>'
+    ].join('');
+    const courseViewHtml = [
+        '<html><body>',
+        '<li class="section main">',
+        '<h3 class="sectionname">4주차 [3월24일 - 3월30일]</h3>',
+        '<ul>',
+        '<li class="activity">',
+        '<img class="activityicon" alt="동영상">',
+        '<a class="aalink" href="/mod/vod/view.php?id=1052475"><span>4주차 동영상1</span></a>',
+        '</li>',
+        '<li class="activity">',
+        '<img class="activityicon" alt="퀴즈">',
+        '<a class="aalink" href="/mod/quiz/view.php?id=1052482"><span>4주차 퀴즈</span></a>',
+        '</li>',
+        '</ul>',
+        '</li>',
+        '</body></html>'
+    ].join('');
+    const quizAttemptHtml = '<div class="quizattemptsummary"><div class="statedetails">미응시</div></div>';
+
+    global.fetch = async function (url) {
+        if (url.includes('/local/ubonattend/my_status.php')) return createResponse(attendanceHtml, url);
+        if (url.includes('/mod/assign/index.php')) return createResponse(assignHtml, url);
+        if (url.includes('/mod/quiz/index.php')) return createResponse(quizHtml, url);
+        if (url.includes('/course/view.php')) return createResponse(courseViewHtml, url);
+        if (url.includes('/mod/quiz/view.php?id=1052482')) return createResponse(quizAttemptHtml, url);
+        throw new Error('Unexpected URL: ' + url);
+    };
+
+    const service = dataService.create({
+        getRequestQueue: function () {
+            return {
+                enqueue: function (task) {
+                    return task({});
+                }
+            };
+        }
+    });
+
+    const result = await service.fetchAllCourseData(['39456']);
+    const video = result.allActivities.find((item) => item.type === '동영상');
+    const quiz = result.allActivities.find((item) => item.type === '퀴즈');
+
+    assert.equal(Boolean(video), true);
+    assert.equal(video.isCompleted, true);
+    assert.match(video.statusText, /완료/);
+
+    assert.equal(Boolean(quiz), true);
+    assert.equal(quiz.isCompleted, false);
+    assert.equal(quiz.isNeutral, false);
+    assert.equal(quiz.statusText, '미응시');
+    assert.match(quiz.optionsHtml, /2026-03-31 12:15/);
+});

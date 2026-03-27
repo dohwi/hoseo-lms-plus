@@ -7,6 +7,9 @@
     const core = window.HoseoLmsPlusCore;
     const dashboardController = window.HoseoLmsPlusDashboardController;
     const sidebar = window.HoseoLmsPlusSidebar;
+    const extensionApi = typeof globalThis.browser !== 'undefined'
+        ? globalThis.browser
+        : (typeof globalThis.chrome !== 'undefined' ? globalThis.chrome : null);
 
     if (window.location.pathname !== '/' && window.location.pathname !== '/index.php') return;
 
@@ -29,7 +32,7 @@
 
     const dashboard = dashboardController.create({
         document: document,
-        extensionStorage: typeof chrome !== 'undefined' && chrome.storage ? chrome.storage.local : null,
+        extensionStorage: extensionApi && extensionApi.storage ? extensionApi.storage.local : null,
         runtime: runtime,
         storage: window.localStorage
     });
