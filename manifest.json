@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "호서 LMS+",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "(비공식) 호서대학교 LMS 에서 과제와 온라인 출석을 한눈에 확인해보세요.",
   "icons": {
     "16": "icon16.png",
