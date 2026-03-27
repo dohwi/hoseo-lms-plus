@@ -31,3 +31,6 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Run Firefox pre-check
+        run: npm run lint:firefox

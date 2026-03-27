@@ -4,12 +4,17 @@
   "version": "1.2.2",
   "scripts": {
     "lint": "eslint . --ext .js",
+    "lint:firefox": "npm run build:firefox && web-ext lint -s dist/firefox",
     "test": "node --test",
-    "build": "rm -rf dist && mkdir -p dist && cp -r manifest.json content.js styles.css lib/ icon*.png dist/ && cd dist && zip -r hoseo-lms-plus-v$(node -p \"require('../package.json').version\").zip manifest.json content.js styles.css lib/ icon*.png"
+    "build": "node scripts/build.js chrome",
+    "build:chrome": "node scripts/build.js chrome",
+    "build:firefox": "node scripts/build.js firefox",
+    "build:all": "node scripts/build.js all"
   },
   "devDependencies": {
     "eslint": "^9.23.0",
     "globals": "^15.15.0",
-    "jsdom": "^26.0.0"
+    "jsdom": "^26.0.0",
+    "web-ext": "^10.0.0"
   }
 }
