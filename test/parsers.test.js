@@ -91,3 +91,31 @@ test('parseQuizAttemptStatus detects completed attempts', function () {
     assert.equal(result.isCompleted, true);
     assert.equal(result.finalStatusText.includes('제출됨'), true);
 });
+
+test('parseQuizIndexPage keeps continuation rows in the same week', function () {
+    const html = `
+        <table class="generaltable">
+            <tbody>
+                <tr>
+                    <td>4주차 [3월24일 - 3월30일]</td>
+                    <td><a href="view.php?id=1086320">4주차_2차시_퀴즈</a></td>
+                    <td>2026-04-07 00:00</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><a href="view.php?id=1052482">4주차 퀴즈</a></td>
+                    <td>2026-03-31 12:15</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+
+    const result = parsers.parseQuizIndexPage(html, '39456', '객체지향프로그래밍', { 4: '[3월24일 - 3월30일]' }, 'https://learn.hoseo.ac.kr');
+    assert.equal(result.length, 2);
+    assert.equal(result[0].weekNum, 4);
+    assert.equal(result[1].weekNum, 4);
+    assert.match(result[1].titleHtml, /4주차 퀴즈/);
+    assert.equal(result[1].activityKey, '/mod/quiz/view.php?id=1052482');
+});
