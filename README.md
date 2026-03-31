@@ -5,6 +5,9 @@
 ### Chrome 웹스토어 설치
 - [Chrome 웹 스토어](https://chromewebstore.google.com/detail/%ED%98%B8%EC%84%9C-lms+/elhbledijdmffjdaplamdkejdgpiddpd?hl=ko)에서 설치합니다.
 
+### Firefox addon 설치
+- [Firefox addons](https://addons.mozilla.org/ko/firefox/addon/%ED%98%B8%EC%84%9C-lms/)에서 설치합니다.
+
 ### 수동 설치
 1. [릴리즈](https://github.com/dohwi/hoseo-lms-plus/releases)에서 최신 버전 zip 파일을 다운로드합니다.
 2. 다운로드한 zip 파일을 압축 해제합니다.
