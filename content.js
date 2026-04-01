@@ -4,12 +4,13 @@
 (function () {
     'use strict';
 
-    const core = window.HoseoLmsPlusCore;
-    const dashboardController = window.HoseoLmsPlusDashboardController;
-    const sidebar = window.HoseoLmsPlusSidebar;
-    const extensionApi = typeof globalThis.browser !== 'undefined'
-        ? globalThis.browser
-        : (typeof globalThis.chrome !== 'undefined' ? globalThis.chrome : null);
+    var _g = typeof globalThis !== 'undefined' ? globalThis : window;
+    var core = _g.HoseoLmsPlusCore;
+    var dashboardController = _g.HoseoLmsPlusDashboardController;
+    var sidebar = _g.HoseoLmsPlusSidebar;
+    var extensionApi = typeof _g.browser !== 'undefined' && _g.browser
+        ? _g.browser
+        : (typeof _g.chrome !== 'undefined' ? _g.chrome : null);
 
     if (window.location.pathname !== '/' && window.location.pathname !== '/index.php') return;
 
