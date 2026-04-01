@@ -4,11 +4,11 @@
 (function () {
     'use strict';
 
-    var _g = typeof globalThis !== 'undefined' ? globalThis : window;
-    var core = _g.HoseoLmsPlusCore;
-    var dashboardController = _g.HoseoLmsPlusDashboardController;
-    var sidebar = _g.HoseoLmsPlusSidebar;
-    var extensionApi = typeof _g.browser !== 'undefined' && _g.browser
+    const _g = typeof globalThis !== 'undefined' ? globalThis : window;
+    const core = _g.HoseoLmsPlusCore;
+    const dashboardController = _g.HoseoLmsPlusDashboardController;
+    const sidebar = _g.HoseoLmsPlusSidebar;
+    const extensionApi = typeof _g.browser !== 'undefined' && _g.browser
         ? _g.browser
         : (typeof _g.chrome !== 'undefined' ? _g.chrome : null);
 
