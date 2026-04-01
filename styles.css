@@ -565,11 +565,45 @@
     white-space: nowrap;
 }
 
+.lms-all-complete-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 24px;
+    text-align: center;
+    border: 1px solid #c3e6cb;
+    background: linear-gradient(135deg, #f0faf3 0%, #e8f5e9 50%, #f0faf3 100%);
+    border-radius: 6px;
+}
+
+.lms-complete-icon {
+    margin-bottom: 16px;
+}
+
+.lms-complete-icon .lms-icon {
+    width: 56px;
+    height: 56px;
+}
+
+.lms-complete-text-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .lms-all-complete {
     color: var(--lms-success);
-    font-weight: bold;
+    font-weight: 700;
     margin: 0;
     font-size: 20px;
+    letter-spacing: -0.3px;
+}
+
+.lms-complete-sub {
+    color: var(--lms-text-light);
+    font-size: 14px;
+    font-weight: 400;
 }
 
 /* 마감 임박 항목 스타일 */
