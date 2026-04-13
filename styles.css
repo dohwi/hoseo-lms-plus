@@ -4,7 +4,6 @@
     --lms-primary-dark: #003366;
     --lms-border: #dee2e6;
     --lms-border-light: #f0f0f0;
-    --lms-bg-light: #f8f9fa;
     --lms-success: #28a745;
     --lms-danger: #d9534f;
     --lms-danger-dark: #c9302c;
@@ -378,7 +377,6 @@
 .lms-btn:focus-visible,
 .lms-nav-btn-large:focus-visible,
 .lms-info-btn-icon:focus-visible,
-.lms-course-chip:focus-visible,
 #lms-calendar-tab a:focus-visible {
     outline: 3px solid rgba(26, 94, 154, 0.25);
     outline-offset: 2px;
@@ -428,11 +426,6 @@
 .lms-table-wrap {
     overflow-x: auto;
     margin-bottom: 30px;
-}
-
-.lms-section-icon {
-    color: var(--lms-primary);
-    margin-right: 5px;
 }
 
 .lms-table {
@@ -534,21 +527,6 @@
 .lms-status-fail {
     color: var(--lms-danger);
     font-weight: bold;
-}
-
-.lms-incomplete-header {
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid var(--lms-danger-light);
-}
-
-.lms-incomplete-title {
-    color: var(--lms-danger);
-    font-weight: bold;
-    margin: 0;
-    font-size: 18px;
-    display: inline-flex;
-    align-items: center;
 }
 
 .lms-td-options {
@@ -723,7 +701,7 @@
 @media (max-width: 768px) {
     .lms-header,
     .lms-course-list,
-    .lms-week-nav {
+    .lms-week-nav-inline {
         flex-direction: column;
         align-items: stretch;
     }
@@ -750,19 +728,7 @@
     }
 
     .lms-progress-container,
-    .lms-week-center {
+    .lms-week-center-inline {
         width: 100%;
     }
-}
-
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
 }
