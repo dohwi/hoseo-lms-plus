@@ -30,6 +30,38 @@ test('getCourseIds supports fallback course selectors', function () {
     assert.deepEqual(ids, ['101', '202']);
 });
 
+test('getCourseInfoList detects regular and irregular course types', function () {
+    const localDom = new JSDOM('<!doctype html><html><body>' +
+        '<div class="lists"><div class="course course-type-R" data-id="101"></div>' +
+        '<div class="course course-type-CMS_ON" data-id="202"></div>' +
+        '<div class="course course-type-IR" data-id="303"></div>' +
+        '<div class="course course-type-R" data-id="404"></div></div>' +
+    '</body></html>');
+    const info = core.getCourseInfoList(localDom.window.document);
+    assert.equal(info.length, 4);
+    assert.equal(info[0].id, '101');
+    assert.equal(info[0].courseType, 'R');
+    assert.equal(info[0].isIrregular, false);
+    assert.equal(info[1].id, '202');
+    assert.equal(info[1].courseType, 'CMS_ON');
+    assert.equal(info[1].isIrregular, true);
+    assert.equal(info[2].id, '303');
+    assert.equal(info[2].courseType, 'IR');
+    assert.equal(info[2].isIrregular, true);
+    assert.equal(info[3].id, '404');
+    assert.equal(info[3].courseType, 'R');
+    assert.equal(info[3].isIrregular, false);
+});
+
+test('getCourseInfoList deduplicates by id', function () {
+    const localDom = new JSDOM('<!doctype html><html><body>' +
+        '<div class="lists"><div class="course course-type-R" data-id="101"></div>' +
+        '<div class="course course-type-R" data-id="101"></div></div>' +
+    '</body></html>');
+    const info = core.getCourseInfoList(localDom.window.document);
+    assert.equal(info.length, 1);
+});
+
 test('getActivityIdentifier prefers stable query params', function () {
     assert.equal(
         core.getActivityIdentifier('https://learn.hoseo.ac.kr/mod/assign/view.php?id=321&rownum=1'),
