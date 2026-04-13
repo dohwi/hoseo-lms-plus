@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "github-workflow-ko": {
+      "source": "dohwi/agent-skills",
+      "sourceType": "github",
+      "computedHash": "ce623fe7e270604d07bfae212cb761a5c78e49295b202140a781b9a3359dcea6"
+    }
+  }
+}
