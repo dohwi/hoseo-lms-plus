@@ -73,6 +73,38 @@ test('getActivityIdentifier prefers stable query params', function () {
     );
 });
 
+test('buildActivityKey uses activityKey field when present', function () {
+    assert.equal(
+        core.buildActivityKey({ activityKey: '/mod/assign/view.php?id=321' }),
+        '/mod/assign/view.php?id=321'
+    );
+});
+
+test('buildActivityKey derives key from URL fields', function () {
+    assert.equal(
+        core.buildActivityKey({ href: 'https://learn.hoseo.ac.kr/mod/quiz/view.php?id=55' }, 'https://learn.hoseo.ac.kr'),
+        '/mod/quiz/view.php?id=55'
+    );
+    assert.equal(
+        core.buildActivityKey({ materialHref: '/mod/page/view.php?cmid=10' }, 'https://learn.hoseo.ac.kr'),
+        '/mod/page/view.php?cmid=10'
+    );
+    assert.equal(
+        core.buildActivityKey({ viewUrl: 'https://learn.hoseo.ac.kr/mod/assign/view.php?id=99' }),
+        '/mod/assign/view.php?id=99'
+    );
+});
+
+test('buildActivityKey falls back to normalized name', function () {
+    const key = core.buildActivityKey({ nameHtml: '<span>[퀴즈]</span> 오리엔테이션' });
+    assert.equal(key, '오리엔테이션');
+});
+
+test('buildActivityKey returns empty string for empty input', function () {
+    assert.equal(core.buildActivityKey(null), '');
+    assert.equal(core.buildActivityKey({}), '');
+});
+
 test('normalizeComparableText removes decoration noise', function () {
     assert.equal(core.normalizeComparableText('<span>[퀴즈]</span> OT-영상!'), 'ot 영상');
 });
