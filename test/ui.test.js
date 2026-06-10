@@ -6,7 +6,11 @@ const core = require('../lib/core.js');
 global.Node = new JSDOM('<!doctype html><html><body></body></html>').window.Node;
 
 global.HoseoLmsPlusCore = core;
-const ui = require('../lib/ui.js');
+require('../lib/ui/elements.js');
+require('../lib/ui/dates.js');
+require('../lib/ui/tooltip.js');
+require('../lib/ui/render.js');
+const ui = require('../lib/ui/index.js');
 
 test('buildHostMount preserves host layout and restoreHost restores original content', function () {
     const dom = new JSDOM('<!doctype html><html><body><main id="page-main"><div class="original">원본 내용</div></main></body></html>');
