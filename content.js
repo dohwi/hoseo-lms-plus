@@ -31,25 +31,73 @@
         resetRequestQueue: resetRequestQueue
     };
 
-    const dashboard = dashboardController.create({
-        document: document,
-        extensionStorage: extensionApi && extensionApi.storage ? extensionApi.storage.local : null,
-        runtime: runtime,
-        storage: window.localStorage,
-        version: core.getManifestVersion()
-    });
+    let dashboard = null;
+    let sidebarApp = null;
+    let active = true;
+    let titleObserver = null;
 
-    const sidebarApp = sidebar.create({
-        document: document,
-        onOpenDashboard: function () {
-            dashboard.replacePageContent(false);
+    function isMainPath() {
+        const path = window.location.pathname;
+        return path === '/' || path === '/index.php';
+    }
+
+    function teardownExtensions() {
+        if (sidebarApp) {
+            sidebarApp.cleanup();
+            sidebarApp = null;
         }
-    });
+        if (dashboard) {
+            dashboard.cleanup();
+            dashboard = null;
+        }
+    }
 
-    sidebarApp.start();
+    function setupExtensions() {
+        teardownExtensions();
+
+        resetRequestQueue();
+
+        dashboard = dashboardController.create({
+            document: document,
+            extensionStorage: extensionApi && extensionApi.storage ? extensionApi.storage.local : null,
+            runtime: runtime,
+            storage: window.localStorage,
+            version: core.getManifestVersion()
+        });
+
+        sidebarApp = sidebar.create({
+            document: document,
+            onOpenDashboard: function () {
+                dashboard.replacePageContent(false);
+            }
+        });
+
+        sidebarApp.start();
+    }
+
+    function handleLocationChange() {
+        const nowMain = isMainPath();
+        if (nowMain === active) return;
+        active = nowMain;
+        if (nowMain) {
+            setupExtensions();
+        } else {
+            teardownExtensions();
+        }
+    }
+
+    setupExtensions();
+
+    window.addEventListener('popstate', handleLocationChange);
+
+    const titleEl = document.querySelector('title');
+    if (titleEl && titleEl.parentNode) {
+        titleObserver = new MutationObserver(handleLocationChange);
+        titleObserver.observe(titleEl.parentNode, { childList: true, characterData: true, subtree: true });
+    }
 
     window.addEventListener('beforeunload', function () {
-        sidebarApp.cleanup();
-        dashboard.cleanup();
+        if (titleObserver) titleObserver.disconnect();
+        teardownExtensions();
     }, { once: true });
 })();
