@@ -8,7 +8,7 @@ content.js (진입점)
 │     공통 유틸, HTML 새니타이징, 캐시, 요청 큐
 ├── HoseoLmsPlusParsers (lib/parsers.js) → Core
 │     LMS HTML 파싱 → Activity/AttendanceItem/Assignment 배열
-├── HoseoLmsPlusUi (lib/ui.js) → Core
+├── HoseoLmsPlusUi (lib/ui/index.js) ← elements, dates, tooltip, render
 │     DOM 빌더, 대시보드 렌더링
 ├── HoseoLmsPlusDataService (lib/data-service.js) → Core, Parsers
 │     요청 조율, 데이터 연계, 매칭 및 보강
@@ -21,12 +21,20 @@ content.js (진입점)
 ## 로딩 순서 (manifest content_scripts)
 
 ```
-lib/core.js → lib/parsers.js → lib/ui.js → lib/data-service.js
-→ lib/dashboard-controller.js → lib/sidebar.js → content.js
+lib/core.js → lib/parsers.js → lib/ui/elements.js → lib/ui/dates.js
+→ lib/ui/tooltip.js → lib/ui/render.js → lib/ui/index.js
+→ lib/data-service.js → lib/dashboard-controller.js → lib/sidebar.js → content.js
 ```
 
 각 `lib/*.js`는 IIFE로 전역(`HoseoLmsPlus{Module}`) + `module.exports` 이중 노출.
 ES2022, `sourceType: 'script'` (ESM 아님), 번들러 없음.
+
+### UI 모듈 구조 (v1.4.0+)
+- `lib/ui/elements.js` — DOM 빌더 (createElement/SVG/Button/Icon/clearChildren/appendSanitizedHtml)
+- `lib/ui/dates.js` — 날짜 유틸 (getActivityDateRange, getDaysUntilDeadline)
+- `lib/ui/tooltip.js` — createInfoTooltip (← elements 의존)
+- `lib/ui/render.js` — 대시보드/메시지/로딩 렌더링 (← elements, dates, tooltip 의존)
+- `lib/ui/index.js` — 집계 후 `HoseoLmsPlusUi` 전역 등록
 
 ## 캐시 스키마
 
