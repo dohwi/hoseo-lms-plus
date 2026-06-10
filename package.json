@@ -14,7 +14,7 @@
   "devDependencies": {
     "eslint": "^9.23.0",
     "globals": "^15.15.0",
-    "jsdom": "^26.0.0",
+    "jsdom": "^29.1.1",
     "web-ext": "^10.0.0"
   }
 }
