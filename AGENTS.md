@@ -2,6 +2,10 @@
 
 Chrome/Firefox 확장 프로그램. `https://learn.hoseo.ac.kr/`에서만 동작하며 LMS 대시보드를 개선.
 
+## Github Workflow
+
+Follow the rules defined in [github-workflow-ko](.agents/skills/github-workflow-ko/SKILL.md) skill. Execute work in units automatically, from branch creation to squash merge.
+
 ## 명령어
 
 ```bash
