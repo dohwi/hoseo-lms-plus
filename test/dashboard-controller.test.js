@@ -21,6 +21,7 @@ global.HoseoLmsPlusUi = {
     renderDashboard: function (doc, mount, state) {
         mount.setAttribute('data-week', String(state.week));
         mount.setAttribute('data-courses', String(state.courseNames.length));
+        mount.setAttribute('data-version', state.version || '');
     },
     restoreHost: function () {},
     updateProgress: function () {}
@@ -71,7 +72,8 @@ test('dashboard controller renders dashboard from fetched data', async function 
             removeItem: function () {},
             key: function () { return null; },
             length: 0
-        }
+        },
+        version: '9.9.9'
     });
 
     controller.replacePageContent(false);
@@ -81,6 +83,7 @@ test('dashboard controller renders dashboard from fetched data', async function 
     assert.ok(mount);
     assert.equal(mount.getAttribute('data-week'), '1');
     assert.equal(mount.getAttribute('data-courses'), '1');
+    assert.equal(mount.getAttribute('data-version'), '9.9.9');
     assert.equal(resets > 0, true);
 
     controller.cleanup();
@@ -116,6 +119,7 @@ test('dashboard refresh reuses saved course ids when dashboard is already mounte
             button.addEventListener('click', state.handlers.onRefresh);
             mount.appendChild(button);
             mount.setAttribute('data-courses', String(state.courseNames.length));
+            mount.setAttribute('data-version', state.version || '');
         },
         restoreHost: function () {},
         updateProgress: function () {}
