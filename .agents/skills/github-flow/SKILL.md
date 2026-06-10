@@ -1,6 +1,6 @@
 ---
-name: github-workflow-ko
-description: GitHub 기반 개발 워크플로를 한국어로 자동 수행하는 스킬. 기본 브랜치를 `main`으로 고정한 github-flow 전략, squash merge 기준의 병합 방식, 그리고 `fix`, `feature` 같은 영어 접두사와 한글 설명을 함께 쓰는 커밋 메시지 규칙을 따르며, 기본적으로 PR 생성까지 진행한 뒤 즉시 병합 여부를 묻는다.
+name: github-flow
+description: 기본 브랜치를 `main`으로 고정한 github-flow 전략, squash merge 기준 병합 방식, 영어 접두사 + 한글 설명 커밋 메시지 규칙. PR 생성 후 즉시 병합 여부를 묻는다.
 metadata:
   workflow: github-flow
 ---
