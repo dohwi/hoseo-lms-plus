@@ -89,7 +89,119 @@ test('dashboard controller renders dashboard from fetched data', async function 
     controller.cleanup();
 });
 
+test('dashboard controller cleanup restores host when dashboard is mounted', async function () {
+    const dom = new JSDOM('<!doctype html><html><body><div class="lists"><div class="course" data-id="101"></div></div><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
+    global.window = dom.window;
+    global.document = dom.window.document;
+
+    let restoreCalls = 0;
+    global.HoseoLmsPlusUi = {
+        buildHostMount: function (doc) {
+            const mount = doc.createElement('section');
+            mount.id = core.SELECTORS.dashboardMountId;
+            doc.body.appendChild(mount);
+            return { mount: mount, host: doc.body };
+        },
+        renderLoading: function () {},
+        renderMessage: function () {},
+        renderDashboard: function () {},
+        restoreHost: function () { restoreCalls += 1; },
+        updateProgress: function () {}
+    };
+
+    delete require.cache[require.resolve('../lib/dashboard-controller.js')];
+    const dc = require('../lib/dashboard-controller.js');
+
+    const controller = dc.create({
+        document: dom.window.document,
+        extensionStorage: null,
+        runtime: {
+            getRequestQueue: function () {
+                return {
+                    enqueue: function (task) {
+                        return task({});
+                    }
+                };
+            },
+            resetRequestQueue: function () {}
+        },
+        storage: {
+            getItem: function () { return null; },
+            setItem: function () {},
+            removeItem: function () {},
+            key: function () { return null; },
+            length: 0
+        }
+    });
+
+    controller.replacePageContent(false);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    assert.equal(restoreCalls, 0);
+
+    controller.cleanup();
+    assert.equal(restoreCalls, 1);
+});
+
+test('dashboard replacePageContent restores previous mount before re-creating', async function () {
+    const dom = new JSDOM('<!doctype html><html><body><div class="lists"><div class="course" data-id="101"></div></div><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
+    global.window = dom.window;
+    global.document = dom.window.document;
+
+    let restoreCalls = 0;
+    global.HoseoLmsPlusUi = {
+        buildHostMount: function (doc) {
+            let mount = doc.getElementById(core.SELECTORS.dashboardMountId);
+            if (!mount) {
+                mount = doc.createElement('section');
+                mount.id = core.SELECTORS.dashboardMountId;
+                doc.body.appendChild(mount);
+            }
+            return { mount: mount, host: doc.body };
+        },
+        renderLoading: function () {},
+        renderMessage: function () {},
+        renderDashboard: function () {},
+        restoreHost: function () { restoreCalls += 1; },
+        updateProgress: function () {}
+    };
+
+    delete require.cache[require.resolve('../lib/dashboard-controller.js')];
+    const dc = require('../lib/dashboard-controller.js');
+
+    const controller = dc.create({
+        document: dom.window.document,
+        extensionStorage: null,
+        runtime: {
+            getRequestQueue: function () {
+                return {
+                    enqueue: function (task) {
+                        return task({});
+                    }
+                };
+            },
+            resetRequestQueue: function () {}
+        },
+        storage: {
+            getItem: function () { return null; },
+            setItem: function () {},
+            removeItem: function () {},
+            key: function () { return null; },
+            length: 0
+        }
+    });
+
+    controller.replacePageContent(false);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    assert.equal(restoreCalls, 0);
+
+    controller.replacePageContent(true);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    assert.equal(restoreCalls, 1);
+});
+
+
 test('dashboard refresh reuses saved course ids when dashboard is already mounted', async function () {
+
     const dom = new JSDOM('<!doctype html><html><body><main><div class="lists"><div class="course" data-id="101"></div></div></main><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
     global.window = dom.window;
     global.document = dom.window.document;
