@@ -1,53 +1,53 @@
-# 호서 LMS+
+# Hoseo LMS+
 
-Chrome/Firefox 확장 프로그램. `https://learn.hoseo.ac.kr/`에서만 동작하며 LMS 대시보드를 개선.
+Chrome/Firefox extension. Runs only on `https://learn.hoseo.ac.kr/` to enhance the LMS dashboard.
 
 ## Github Workflow
 
 Follow the rules defined in [github-flow](.agents/skills/github-flow/SKILL.md) skill. Execute work in units automatically, from branch creation to squash merge.
 
-## 명령어
+## Commands
 
 ```bash
-npm run lint          # ESLint 검사
-npm test              # node --test (jsdom 사용)
-npm run lint:firefox  # Firefox 빌드 후 web-ext lint (빌드 선행 필요)
-npm run build         # Chrome 빌드 (dist/chrome/ + zip)
-npm run build:firefox # Firefox 빌드
-npm run build:all     # Chrome + Firefox 동시 빌드
+npm run lint          # ESLint
+npm test              # node --test (with jsdom)
+npm run lint:firefox  # Firefox build then web-ext lint (build runs first)
+npm run build         # Chrome build (dist/chrome/ + zip)
+npm run build:firefox # Firefox build
+npm run build:all     # Chrome + Firefox builds
 ```
 
-커밋 전 확인 순서: `lint → test → build`
+Pre-commit check order: `lint → test → build`
 
-## 아키텍처
+## Architecture
 
-번들러/트랜스파일러 없음. 소스 JS가 확장 프로그램으로 그대로 로드됨.
+No bundler or transpiler. Source JS is loaded directly into the extension.
 
-상세: [`docs/architecture.md`](docs/architecture.md) (모듈 의존성, 캐시 스키마, 매칭 정책, 셀렉터 가이드)
+Details: [`docs/architecture.md`](docs/architecture.md) (module dependencies, cache schema, matching policy, selector guide)
 
-**로딩 순서** (manifest.json content_scripts 순서):
-`lib/core.js` → `lib/parsers.js` → `lib/ui.js` → `lib/data-service.js` → `lib/dashboard-controller.js` → `lib/sidebar.js` → `content.js`
+**Load order** (manifest.json content_scripts):
+`lib/core.js` → `lib/parsers.js` → `lib/ui/elements.js` → `lib/ui/dates.js` → `lib/ui/tooltip.js` → `lib/ui/render.js` → `lib/ui/index.js` → `lib/data-service.js` → `lib/dashboard-controller.js` → `lib/sidebar.js` → `content.js`
 
-- 각 `lib/*.js`는 IIFE로 전역 변수(`HoseoLmsPlusCore` 등)에 등록 + `module.exports` 지원 (테스트용)
-- `lib/types.js`: JSDoc `@typedef`만 정의, 런타임 코드 없음
-- `content.js`: 진입점. 메인 페이지(`/` 또는 `/index.php`)에서만 실행, SPA 내비게이션 대응
-- 셀렉터 수정 시 `lib/core.js`의 `SELECTORS` 객체를 우선 변경, 파서/UI 수정은 부차적
-- `scripts/build.js`: 파일 복사 + manifest 수정 + zip 생성. 트랜스파일 없음
+- Each `lib/*.js` is an IIFE that registers a global (`HoseoLmsPlusCore`, etc.) + `module.exports` for testing
+- `lib/types.js`: JSDoc `@typedef` only, no runtime code
+- `content.js`: entry point. Runs on main page (`/` or `/index.php`) only, handles SPA navigation
+- When modifying selectors, change `lib/core.js` `SELECTORS` object first, then parser/UI changes as secondary
+- `scripts/build.js`: file copy + manifest transformation + zip. No transpilation
 
-## 코드 규칙
+## Code Rules
 
-- ES2022, `sourceType: 'script'` (ESM 아님)
-- `no-var`, `prefer-const`, `eqeqeq`(항상 `===`), `no-undef` 엄격
-- `_` 접두사 파라미터는 unused 허용
-- `chrome` 전역 읽기 전용 허용 (확장 프로그램 API)
-- 브라우저/Node 전역 모두 접근 가능 (ESLint 설정)
+- ES2022, `sourceType: 'script'` (not ESM)
+- `no-var`, `prefer-const`, `eqeqeq` (always `===`), `no-undef` strictly enforced
+- `_` prefix params allowed as unused
+- `chrome` global allowed as read-only (extension API)
+- Both browser and Node globals accessible (ESLint settings)
 
-## 테스트
+## Testing
 
 - `node:test` + `node:assert/strict` + jsdom
-- 테스트 파일: `test/*.test.js`
-- 테스트 픽스처: `test/fixtures/` (HTML 샘플)
-- lib 모듈을 `require()`로 로드. JSDOM 인스턴스에서 `global.Node` 설정 필요:
+- Test files: `test/*.test.js`
+- Test fixtures: `test/fixtures/` (HTML samples)
+- Load lib modules via `require()`. Set `global.Node` in JSDOM instance:
   ```js
   const { JSDOM } = require('jsdom');
   const dom = new JSDOM('<!doctype html><html><body></body></html>');
@@ -58,9 +58,9 @@ npm run build:all     # Chrome + Firefox 동시 빌드
 
 `.github/workflows/ci.yml`: lint → test → lint:firefox (Node 22)
 
-## 빌드 산출물
+## Build Artifacts
 
-`dist/` 디렉토리에 생성. `.gitignore`에 포함됨.
-- `dist/chrome/`, `dist/firefox/` 각각 독립 복사본
-- Firefox는 `browser_specific_settings.gecko` 포함, Chrome은 제외
-- zip 파일: `dist/{target}/hoseo-lms-plus-{target}-v{version}.zip`
+Generated in `dist/`, included in `.gitignore`.
+- `dist/chrome/`, `dist/firefox/` — independent copies
+- Firefox includes `browser_specific_settings.gecko`, Chrome excludes it
+- zip files: `dist/{target}/hoseo-lms-plus-{target}-v{version}.zip`
