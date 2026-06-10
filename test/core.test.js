@@ -100,9 +100,20 @@ test('buildActivityKey falls back to normalized name', function () {
     assert.equal(key, '오리엔테이션');
 });
 
-test('buildActivityKey returns empty string for empty input', function () {
-    assert.equal(core.buildActivityKey(null), '');
-    assert.equal(core.buildActivityKey({}), '');
+test('buildActivityKey returns null for empty input', function () {
+    assert.equal(core.buildActivityKey(null), null);
+    assert.equal(core.buildActivityKey({}), null);
+});
+
+test('dedupActivities filters items with null activity keys', function () {
+    const items = [
+        { courseId: '101', weekNum: 1, nameHtml: '' },
+        { courseId: '101', weekNum: 1, nameHtml: '중복' },
+        { courseId: '101', weekNum: 1, nameHtml: '중복' }
+    ];
+    const result = core.dedupActivities(items);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].nameHtml, '중복');
 });
 
 test('normalizeComparableText removes decoration noise', function () {
