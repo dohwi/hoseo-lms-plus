@@ -1,5 +1,12 @@
 # 변경 이력
 
+## [Unreleased]
+
+### 변경
+- CI에 push to main 시 자동 태그 생성 및 GitHub Release 배포 추가
+
+---
+
 ## [1.4.0] - 2026-06-11
 
 ### 리팩터링
