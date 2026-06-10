@@ -144,3 +144,7 @@ test('createAsyncCacheStore uses extension storage and prunes expired entries', 
     assert.deepEqual(result.data, { fresh: true });
     assert.equal(area.items['lms_plus_cache:v3:u1:1'], undefined);
 });
+
+test('getManifestVersion returns empty string when extension runtime is unavailable', function () {
+    assert.equal(core.getManifestVersion(), '');
+});

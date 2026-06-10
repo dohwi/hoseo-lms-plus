@@ -35,7 +35,8 @@
         document: document,
         extensionStorage: extensionApi && extensionApi.storage ? extensionApi.storage.local : null,
         runtime: runtime,
-        storage: window.localStorage
+        storage: window.localStorage,
+        version: core.getManifestVersion()
     });
 
     const sidebarApp = sidebar.create({
