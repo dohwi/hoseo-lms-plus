@@ -1,5 +1,18 @@
 # 변경 이력
 
+## [1.3.0] - 2026-06-11
+
+### 변경
+- `core.buildActivityKey`가 빈 문자열 대신 `null` 반환 — 매칭 로직 타입 안전성 강화
+- `core.dedupActivities`가 null 키 항목을 필터링하도록 개선
+- `core.SELECTORS`에 파서용 셀렉터 fallback 체인 추가 (attendanceTable, courseSection, activityTable, quizTable)
+- `core.queryWithFallback()` 유틸 추가 — 배열 셀렉터 순회하며 첫 매치 사용
+- `IRREGULAR_COURSE_TYPES`를 `core.SELECTORS.irregularCourseTypes`로 이전
+- `lib/parsers.js`의 모든 셀렉터를 `queryWithFallback`으로 교체
+- `lib/data-service.js`의 `findMatchedByKey`에 null 키 가드 추가
+
+---
+
 ## [1.2.9] - 2026-06-11
 
 ### 추가
