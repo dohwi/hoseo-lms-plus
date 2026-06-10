@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "호서 LMS+",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "(비공식) 호서대학교 LMS 에서 과제와 온라인 출석을 한눈에 확인해보세요.",
   "icons": {
     "16": "icon16.png",
@@ -26,7 +26,11 @@
       "js": [
         "lib/core.js",
         "lib/parsers.js",
-        "lib/ui.js",
+        "lib/ui/elements.js",
+        "lib/ui/dates.js",
+        "lib/ui/tooltip.js",
+        "lib/ui/render.js",
+        "lib/ui/index.js",
         "lib/data-service.js",
         "lib/dashboard-controller.js",
         "lib/sidebar.js",
