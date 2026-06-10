@@ -1,5 +1,14 @@
 # 변경 이력
 
+## [1.4.0] - 2026-06-11
+
+### 리팩터링
+- `lib/ui.js`를 5개 모듈로 분할 (elements, dates, tooltip, render, index)
+- `manifest.json`의 content_scripts 로딩 순서 반영
+- 테스트에서 서브 모듈을 명시적 로드 후 집계 모듈 사용
+
+---
+
 ## [1.3.0] - 2026-06-11
 
 ### 변경
