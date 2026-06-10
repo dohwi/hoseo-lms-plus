@@ -19,12 +19,15 @@ npm run build:all     # Chrome + Firefox 동시 빌드
 
 번들러/트랜스파일러 없음. 소스 JS가 확장 프로그램으로 그대로 로드됨.
 
+상세: [`docs/architecture.md`](docs/architecture.md) (모듈 의존성, 캐시 스키마, 매칭 정책, 셀렉터 가이드)
+
 **로딩 순서** (manifest.json content_scripts 순서):
 `lib/core.js` → `lib/parsers.js` → `lib/ui.js` → `lib/data-service.js` → `lib/dashboard-controller.js` → `lib/sidebar.js` → `content.js`
 
 - 각 `lib/*.js`는 IIFE로 전역 변수(`HoseoLmsPlusCore` 등)에 등록 + `module.exports` 지원 (테스트용)
 - `lib/types.js`: JSDoc `@typedef`만 정의, 런타임 코드 없음
-- `content.js`: 진입점. 메인 페이지(`/` 또는 `/index.php`)에서만 실행
+- `content.js`: 진입점. 메인 페이지(`/` 또는 `/index.php`)에서만 실행, SPA 내비게이션 대응
+- 셀렉터 수정 시 `lib/core.js`의 `SELECTORS` 객체를 우선 변경, 파서/UI 수정은 부차적
 - `scripts/build.js`: 파일 복사 + manifest 수정 + zip 생성. 트랜스파일 없음
 
 ## 코드 규칙
