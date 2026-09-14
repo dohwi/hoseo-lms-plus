@@ -65,6 +65,35 @@ test('parseAssignmentIndexPage stores activity keys for matching', function () {
     assert.equal(result[0].activityKey, '/mod/assign/view.php?id=44');
 });
 
+test('parsers reject unsafe activity URLs', function () {
+    const assignmentHtml = `
+        <table class="generaltable"><tbody><tr>
+            <td>1주</td><td><a href="javascript:alert(1)">위험 과제</a></td><td>-</td><td>미제출</td><td>-</td>
+        </tr></tbody></table>
+    `;
+    const quizHtml = `
+        <table class="generaltable"><tbody><tr>
+            <td>1주</td><td><a href="data:text/html,unsafe">위험 퀴즈</a></td><td>-</td><td>-</td>
+        </tr></tbody></table>
+    `;
+    const courseHtml = `
+        <ul class="weeks"><li class="section"><h3 class="sectionname">1주차</h3><ul>
+            <li class="activity"><img class="activityicon" alt="Page"><a class="aalink" href="javascript:alert(1)">위험 자료</a></li>
+        </ul></li></ul>
+    `;
+
+    const assignments = parsers.parseAssignmentIndexPage(assignmentHtml, '101', '테스트', {}, 'https://learn.hoseo.ac.kr');
+    const quizzes = parsers.parseQuizIndexPage(quizHtml, '101', '테스트', {}, 'https://learn.hoseo.ac.kr');
+    const activities = parsers.parseCourseViewPage(courseHtml, '101', '테스트', {}, 'https://learn.hoseo.ac.kr');
+
+    assert.equal(assignments[0].viewUrl, null);
+    assert.equal(assignments[0].activityKey, '');
+    assert.equal(quizzes[0].viewUrl, null);
+    assert.equal(quizzes[0].activityKey, '');
+    assert.equal(activities[0].href, '#');
+    assert.equal(activities[0].activityKey, '');
+});
+
 test('parseAttendancePage handles mixed week and continuation rows fixture', function () {
     const html = fs.readFileSync(path.join(__dirname, 'fixtures', 'attendance-mixed.html'), 'utf8');
     const result = parsers.parseAttendancePage(html, '101', 'https://learn.hoseo.ac.kr');

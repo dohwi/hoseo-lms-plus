@@ -162,12 +162,14 @@ test('createCacheStore prunes expired entries without stopping early', function 
 });
 
 test('createAsyncCacheStore uses extension storage and prunes expired entries', async function () {
+    const getCalls = [];
     const area = {
         items: {
             'lms_plus_cache:v3:u1:1': { timestamp: Date.now() - core.CACHE_TTL - 1, data: { stale: true } },
             'lms_plus_cache:v3:u1:2': { timestamp: Date.now(), data: { fresh: true } }
         },
         async get(key) {
+            getCalls.push(key);
             if (key === null) return { ...this.items };
             return { [key]: this.items[key] };
         },
@@ -186,6 +188,7 @@ test('createAsyncCacheStore uses extension storage and prunes expired entries', 
 
     assert.deepEqual(result.data, { fresh: true });
     assert.equal(area.items['lms_plus_cache:v3:u1:1'], undefined);
+    assert.deepEqual(getCalls, [null, 'lms_plus_cache:v3:u1:2']);
 });
 
 test('getManifestVersion returns empty string when extension runtime is unavailable', function () {
