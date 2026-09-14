@@ -68,8 +68,8 @@ test('data service keeps passive resources neutral and matches watched videos mo
         '<h3 class="sectionname">공지사항</h3>',
         '<ul>',
         '<li class="activity">',
-        '<img class="activityicon" alt="URL">',
-        '<a class="aalink" href="/mod/url/view.php?id=501"><span>강의 안내 링크</span></a>',
+        '<img class="activityicon" alt="게시판">',
+        '<a class="aalink" href="/mod/ubboard/view.php?id=1136930"><span>공지사항</span></a>',
         '</li>',
         '</ul>',
         '</li>',
@@ -90,6 +90,7 @@ test('data service keeps passive resources neutral and matches watched videos mo
     const video = result.allActivities.find((item) => item.type === 'Page');
     const file = result.allActivities.find((item) => item.type === 'File');
     const otherWeekUrl = result.allActivities.find((item) => item.weekNum === core.OTHER_WEEK_NUM);
+    const notice = result.allNotices[0];
 
     assert.equal(Boolean(video), true);
     assert.equal(video.isCompleted, true);
@@ -101,6 +102,10 @@ test('data service keeps passive resources neutral and matches watched videos mo
     assert.equal(file.statusText, '-');
 
     assert.equal(otherWeekUrl, undefined);
+    assert.equal(result.allNotices.length, 1);
+    assert.equal(notice.courseName, '테스트 강의');
+    assert.equal(notice.href, 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1136930');
+    assert.match(notice.titleHtml, /공지사항/);
 });
 
 test('data service falls back to course-wide matching when week parsing differs', async function () {

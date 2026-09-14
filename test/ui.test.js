@@ -68,6 +68,45 @@ test('renderDashboard uses svg icon buttons for header controls', function () {
     assert.equal(doc.getElementById('lms-info-btn').getAttribute('title'), null);
 });
 
+test('renderDashboard shows course notice links with announcement icon', function () {
+    const dom = new JSDOM('<!doctype html><html><body><section id="mount"></section></body></html>');
+    const doc = dom.window.document;
+    const mount = doc.getElementById('mount');
+
+    ui.renderDashboard(doc, mount, {
+        week: 1,
+        periodStr: '[03.01~03.07]',
+        activities: [],
+        incActivities: [],
+        notices: [{
+            courseId: '101',
+            courseName: '테스트 강의',
+            href: 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1136930',
+            titleHtml: '<span>공지사항</span>'
+        }],
+        courseNames: [],
+        warnings: [],
+        canPrev: false,
+        canNext: false,
+        baseUrl: core.DEFAULT_BASE_URL,
+        handlers: {
+            onPrev: function () {},
+            onNext: function () {},
+            onRefresh: function () {}
+        }
+    });
+
+    const card = doc.querySelector('.lms-notice-card');
+    const link = doc.querySelector('.lms-notice-link');
+    assert.ok(card);
+    assert.ok(doc.querySelector('.lms-notice-icon'));
+    assert.match(card.textContent, /강좌별 공지사항/);
+    assert.match(card.textContent, /테스트 강의/);
+    assert.equal(link.getAttribute('href'), 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1136930');
+    assert.equal(link.getAttribute('target'), '_blank');
+    assert.equal(link.getAttribute('aria-label'), '테스트 강의 공지사항 (새 창에서 열림)');
+});
+
 test('renderDashboard shows default period text for 기타 week', function () {
     const dom = new JSDOM('<!doctype html><html><body><section id="mount"></section></body></html>');
     const doc = dom.window.document;

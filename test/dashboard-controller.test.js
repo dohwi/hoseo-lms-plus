@@ -89,6 +89,48 @@ test('dashboard controller renders dashboard from fetched data', async function 
     controller.cleanup();
 });
 
+test('dashboard controller renders notice-only data in 기타 view', async function () {
+    const dom = new JSDOM('<!doctype html><html><body><div class="lists"><div class="course" data-id="101"></div></div><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
+    global.window = dom.window;
+    global.document = dom.window.document;
+
+    global.HoseoLmsPlusDataService = {
+        create: function () {
+            return {
+                fetchAllCourseData: async function () {
+                    return {
+                        allItems: [],
+                        allAssigns: [],
+                        allActivities: [],
+                        allNotices: [{ courseId: '101', courseName: '테스트 강의', href: 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1', titleHtml: '공지사항' }],
+                        allCourseNames: [{ courseName: '테스트 강의' }],
+                        warnings: [],
+                        sessionExpired: false
+                    };
+                }
+            };
+        }
+    };
+    delete require.cache[require.resolve('../lib/dashboard-controller.js')];
+    const noticeDashboardController = require('../lib/dashboard-controller.js');
+    const controller = noticeDashboardController.create({
+        document: dom.window.document,
+        extensionStorage: null,
+        runtime: {
+            getRequestQueue: function () { return { enqueue: function (task) { return task(new AbortController().signal); } }; },
+            resetRequestQueue: function () {}
+        },
+        storage: { getItem: function () { return null; }, setItem: function () {}, removeItem: function () {}, key: function () { return null; }, length: 0 }
+    });
+
+    controller.replacePageContent(false);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+
+    const mount = dom.window.document.getElementById(core.SELECTORS.dashboardMountId);
+    assert.equal(mount.getAttribute('data-week'), String(core.OTHER_WEEK_NUM));
+    assert.equal(mount.getAttribute('data-message'), null);
+});
+
 test('dashboard controller cleanup restores host when dashboard is mounted', async function () {
     const dom = new JSDOM('<!doctype html><html><body><div class="lists"><div class="course" data-id="101"></div></div><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
     global.window = dom.window;

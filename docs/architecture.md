@@ -40,7 +40,7 @@ ES2022, `sourceType: 'script'` (ESM 아님), 번들러 없음.
 
 ```
 키 형식: lms_plus_cache:v{CACHE_VERSION}:{userId}:{sortedCourseIds,}
-예: lms_plus_cache:v3:101:202,303,404
+예: lms_plus_cache:v4:101:202,303,404
 
 TTL: 6시간 (CACHE_TTL = 21600000ms)
 저장소: chrome.storage.local (비동기) 우선, localStorage (동기) fallback
@@ -66,6 +66,9 @@ TTL: 6시간 (CACHE_TTL = 21600000ms)
 
 ### 미매칭
 해당 활동은 `isNeutral=true`로 표시 (상태 확인 불가). 파일/토론/Forum 타입은 기본적으로 `isIgnoredType=true`.
+
+### 강좌 공지사항
+강좌 메인 페이지의 `/mod/ubboard/view.php?id=...` 활동은 학습 완료 판정 대상에서 제외하고 `allNotices`로 분리합니다. 추가 네트워크 요청 없이 강좌별 공지 게시판 바로가기를 대시보드 상단 카드에 표시합니다.
 
 ## 셀렉터 외부화
 
