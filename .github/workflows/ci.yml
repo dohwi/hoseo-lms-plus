@@ -1,10 +1,16 @@
 name: CI
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   lint-and-test:
@@ -61,24 +67,31 @@ jobs:
       - name: Build all targets
         run: npm run build:all
 
-      - name: Create tag
+      - name: Create checksums
+        run: sha256sum dist/chrome/*.zip dist/firefox/*.zip > dist/SHA256SUMS
+
+      - name: Check existing release
+        id: release_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.version.outputs.value }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          TAG="v${{ steps.version.outputs.value }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping tag creation"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping immutable release"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           else
-            git tag -a "$TAG" -m "Release $TAG"
-            git push origin "$TAG"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create GitHub Release
+        if: steps.release_check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.value }}
           name: v${{ steps.version.outputs.value }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             dist/chrome/hoseo-lms-plus-chrome-v*.zip
             dist/firefox/hoseo-lms-plus-firefox-v*.zip
+            dist/SHA256SUMS

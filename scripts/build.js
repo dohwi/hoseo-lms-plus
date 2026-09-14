@@ -4,7 +4,9 @@ const { execFileSync } = require('node:child_process');
 
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');
-const version = require(path.join(rootDir, 'package.json')).version;
+const packageJson = require(path.join(rootDir, 'package.json'));
+const packageLock = require(path.join(rootDir, 'package-lock.json'));
+const version = packageJson.version;
 const targets = new Set(['chrome', 'firefox']);
 const inputTarget = process.argv[2] || 'chrome';
 
@@ -17,9 +19,17 @@ function copyArtifact(relativePath, targetDir) {
     fs.cpSync(path.join(rootDir, relativePath), path.join(targetDir, relativePath), { recursive: true });
 }
 
+function assertVersionConsistency(manifest) {
+    const lockRootVersion = packageLock.packages && packageLock.packages[''] && packageLock.packages[''].version;
+    if (manifest.version !== version || packageLock.version !== version || lockRootVersion !== version) {
+        throw new Error('Version mismatch: package.json, package-lock.json, and manifest.json must use ' + version);
+    }
+}
+
 function buildManifest(target) {
     const manifestPath = path.join(rootDir, 'manifest.json');
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    assertVersionConsistency(manifest);
 
     if (target === 'firefox') {
         manifest.browser_specific_settings = {

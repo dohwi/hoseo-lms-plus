@@ -13,6 +13,19 @@ global.HoseoLmsPlusCore = core;
 global.HoseoLmsPlusParsers = require('../lib/parsers.js');
 const dataService = require('../lib/data-service.js');
 
+function createRuntime(signal, requestTimeoutMs) {
+    return {
+        requestTimeoutMs: requestTimeoutMs,
+        getRequestQueue: function () {
+            return {
+                enqueue: function (task) {
+                    return task(signal || new AbortController().signal);
+                }
+            };
+        }
+    };
+}
+
 function createResponse(body, url) {
     return {
         ok: true,
@@ -71,15 +84,7 @@ test('data service keeps passive resources neutral and matches watched videos mo
         throw new Error('Unexpected URL: ' + url);
     };
 
-    const service = dataService.create({
-        getRequestQueue: function () {
-            return {
-                enqueue: function (task) {
-                    return task({});
-                }
-            };
-        }
-    });
+    const service = dataService.create(createRuntime());
 
     const result = await service.fetchAllCourseData(['101']);
     const video = result.allActivities.find((item) => item.type === 'Page');
@@ -142,15 +147,7 @@ test('data service falls back to course-wide matching when week parsing differs'
         throw new Error('Unexpected URL: ' + url);
     };
 
-    const service = dataService.create({
-        getRequestQueue: function () {
-            return {
-                enqueue: function (task) {
-                    return task({});
-                }
-            };
-        }
-    });
+    const service = dataService.create(createRuntime());
 
     const result = await service.fetchAllCourseData(['39456']);
     const video = result.allActivities.find((item) => item.type === '동영상');
@@ -165,4 +162,42 @@ test('data service falls back to course-wide matching when week parsing differs'
     assert.equal(quiz.isNeutral, false);
     assert.equal(quiz.statusText, '미응시');
     assert.match(quiz.optionsHtml, /2026-03-31 12:15/);
+});
+
+test('data service reports request timeouts instead of hanging', async function () {
+    global.fetch = function (_url, options) {
+        return new Promise(function (_resolve, reject) {
+            options.signal.addEventListener('abort', function () {
+                const error = new Error('aborted');
+                error.name = 'AbortError';
+                reject(error);
+            }, { once: true });
+        });
+    };
+
+    const service = dataService.create(createRuntime(null, 5));
+    const result = await service.fetchAllCourseData([{ id: '101', isIrregular: false }]);
+
+    assert.equal(result.allActivities.length, 0);
+    assert.equal(result.warnings.length, 4);
+    assert.equal(result.warnings.every(function (warning) { return warning.includes('요청 시간이 초과되었습니다.'); }), true);
+});
+
+test('data service propagates queue cancellation', async function () {
+    const queueController = new AbortController();
+    global.fetch = function (_url, options) {
+        return new Promise(function (_resolve, reject) {
+            options.signal.addEventListener('abort', function () {
+                const error = new Error('aborted');
+                error.name = 'AbortError';
+                reject(error);
+            }, { once: true });
+        });
+    };
+
+    const service = dataService.create(createRuntime(queueController.signal, 1000));
+    const request = service.fetchAllCourseData([{ id: '101', isIrregular: false }]);
+    queueController.abort();
+
+    await assert.rejects(request, { name: 'AbortError' });
 });

@@ -3,7 +3,7 @@ const globals = require('globals');
 module.exports = [
     {
         files: ['**/*.js'],
-        ignores: ['node_modules/**'],
+        ignores: ['node_modules/**', 'dist/**'],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'script',

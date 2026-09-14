@@ -1,9 +1,9 @@
 {
   "name": "hoseo-lms-plus",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.4.2",
   "scripts": {
-    "lint": "eslint . --ext .js",
+    "lint": "eslint .",
     "lint:firefox": "npm run build:firefox && web-ext lint -s dist/firefox",
     "test": "node --test",
     "build": "node scripts/build.js chrome",
@@ -15,6 +15,6 @@
     "eslint": "^10.10.0",
     "globals": "^17.7.0",
     "jsdom": "^26.0.0",
-    "web-ext": "^10.4.0"
+    "web-ext": "^10.6.0"
   }
 }

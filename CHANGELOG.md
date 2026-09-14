@@ -2,8 +2,29 @@
 
 ## [Unreleased]
 
+---
+
+## [1.4.2] - 2026-09-15
+
+### 수정
+- 연말연시 주차 기간 계산 오류 수정
+- LMS 요청에 15초 타임아웃을 적용해 무한 로딩 방지
+- 활동 URL 프로토콜 검증을 강화해 위험한 링크 차단
+- 동일 버전 릴리스 자산이 최신 코드로 덮어써지는 CI 문제 수정
+
+### 개선
+- 확장 저장소 캐시 조회 및 용량 초과 시 정리 로직 개선
+- PR 단계 CI와 GitHub Actions Dependabot 추가
+- 빌드 시 package/lockfile/manifest 버전 일치 검증
+- 개인정보처리방침 추가
+
+---
+
+## [1.4.1] - 2026-06-11
+
 ### 변경
-- CI에 push to main 시 자동 태그 생성 및 GitHub Release 배포 추가
+- CI에 main push 시 자동 태그 생성 및 GitHub Release 배포 추가
+- Chrome/Firefox 빌드 아티팩트 업로드
 
 ---
 

@@ -126,8 +126,13 @@ test('findCurrentWeekIndex handles year crossing ranges', function () {
         [15, [{ periodStr: '[12.20~01.03]' }]],
         [16, [{ periodStr: '[01.04~01.10]' }]]
     ]);
-    const index = core.findCurrentWeekIndex(sortedWeeks, itemsByWeek, new Map(), new Map(), new Date('2026-01-02T12:00:00'));
-    assert.equal(index, 1);
+    const januaryIndex = core.findCurrentWeekIndex(sortedWeeks, itemsByWeek, new Map(), new Map(), new Date('2026-01-02T12:00:00'));
+    const juneIndex = core.findCurrentWeekIndex(sortedWeeks, itemsByWeek, new Map(), new Map(), new Date('2026-06-01T12:00:00'));
+    const decemberIndex = core.findCurrentWeekIndex(sortedWeeks, itemsByWeek, new Map(), new Map(), new Date('2026-12-25T12:00:00'));
+
+    assert.equal(januaryIndex, 1);
+    assert.equal(juneIndex, 2);
+    assert.equal(decemberIndex, 1);
 });
 
 test('createCacheStore prunes expired entries without stopping early', function () {
@@ -189,6 +194,35 @@ test('createAsyncCacheStore uses extension storage and prunes expired entries', 
     assert.deepEqual(result.data, { fresh: true });
     assert.equal(area.items['lms_plus_cache:v3:u1:1'], undefined);
     assert.deepEqual(getCalls, [null, 'lms_plus_cache:v3:u1:2']);
+});
+
+test('createAsyncCacheStore evicts old caches and retries after quota failure', async function () {
+    let setAttempts = 0;
+    const area = {
+        items: {
+            'lms_plus_cache:v3:u1:old': { timestamp: Date.now() - 2000, data: { old: true } },
+            'lms_plus_cache:v3:u1:newer': { timestamp: Date.now() - 1000, data: { newer: true } }
+        },
+        async get() {
+            return { ...this.items };
+        },
+        async set(values) {
+            setAttempts += 1;
+            if (setAttempts === 1) throw new Error('QUOTA_BYTES exceeded');
+            Object.assign(this.items, values);
+        },
+        async remove(keys) {
+            keys.forEach((key) => { delete this.items[key]; });
+        }
+    };
+
+    const cacheStore = core.createAsyncCacheStore(area, null);
+    await cacheStore.set('lms_plus_cache:v3:u1:current', { current: true });
+
+    assert.equal(setAttempts, 2);
+    assert.deepEqual(area.items['lms_plus_cache:v3:u1:current'].data, { current: true });
+    assert.equal(area.items['lms_plus_cache:v3:u1:old'], undefined);
+    assert.deepEqual(area.items['lms_plus_cache:v3:u1:newer'].data, { newer: true });
 });
 
 test('getManifestVersion returns empty string when extension runtime is unavailable', function () {

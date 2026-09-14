@@ -47,7 +47,8 @@ TTL: 6시간 (CACHE_TTL = 21600000ms)
 ```
 
 - `promise.then()` 존재하면 Promise API, 없으면 콜백 API 사용
-- `pruneExpiredEntries()`가 매 접근 시 만료 항목 정리
+- `pruneExpiredEntries()`는 최대 5분 간격으로 만료 항목 정리
+- 저장 용량 초과 시 기존 호서 LMS+ 캐시를 제거하고 1회 재시도
 - 새로고침 시 해당 키만 삭제 후 재요청
 
 ## 매칭 정책
@@ -92,6 +93,7 @@ LMS HTML에 의존하는 모든 CSS 셀렉터는 `core.SELECTORS`에 집약되�
 
 ### 요청 안전성
 - `AbortController` 기반 요청 큐 (기본 동시성 6)
+- 요청별 15초 타임아웃 적용, 사용자 취소와 타임아웃 오류 구분
 - `sessionExpired` 감지 시 렌더 중단, 로그인 재인증 안내
 - LMS redirect (`/login/` 패턴) 감지 시 세션 만료로 처리
 
