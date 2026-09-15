@@ -100,6 +100,7 @@ test('renderDashboard shows notice posts as neutral learning rows with icon', fu
 
     const row = doc.querySelector('.lms-row-neutral');
     assert.ok(row);
+    assert.equal(row.classList.contains('lms-row-notice'), true);
     assert.ok(row.querySelector('.lms-activity-type-notice'));
     assert.ok(row.querySelector('.lms-activity-type-icon'));
     assert.match(row.textContent, /공지사항/);
@@ -289,7 +290,9 @@ test('renderDashboard includes info tooltip with status criteria', function () {
     assert.match(tooltip.textContent, /아직 시작 기간이 되지 않은 항목/);
     assert.match(tooltip.textContent, /시작 기간은 지났지만 마감까지 8일 이상 남은 미완료 항목/);
     assert.match(tooltip.textContent, /완료 상태를 판정하지 않는 항목/);
-    assert.equal(doc.querySelectorAll('.lms-info-tooltip-badge').length, 5);
+    assert.equal(doc.querySelectorAll('.lms-info-tooltip-badge').length, 6);
+    assert.match(tooltip.textContent, /노란 테두리/);
+    assert.match(tooltip.textContent, /어떤 주차에도 포함되지 않으면 기타/);
     assert.match(tooltip.textContent, /판정 기준 상세/);
     assert.match(tooltip.textContent, /출석\/학습 현황 페이지/);
     assert.match(tooltip.textContent, /과제함, 퀴즈 목록, 상세 페이지/);

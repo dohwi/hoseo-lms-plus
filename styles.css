@@ -226,6 +226,12 @@
     color: #b24b40;
 }
 
+.lms-info-tooltip-badge-notice {
+    background: #fff9dc;
+    border-color: #dfc668;
+    color: #684f00;
+}
+
 .lms-info-tooltip-badge-neutral {
     background: #f6f7f9;
     border-color: #d8dee6;
@@ -751,6 +757,31 @@
 
 .lms-row-neutral {
     background-color: #fff;
+}
+
+.lms-row-notice td:not(.lms-td-course) {
+    background-color: #fffdf5 !important;
+    border-top: 1px solid #e2c766 !important;
+    border-bottom: 1px solid #e2c766 !important;
+}
+
+.lms-row-notice .lms-td-course + td,
+.lms-row-notice td:first-child:not(.lms-td-course) {
+    border-left: 3px solid #d0a900 !important;
+}
+
+.lms-row-notice td:last-child {
+    border-right: 1px solid #e2c766 !important;
+}
+
+.lms-row-notice .lms-td-left a {
+    color: #735700;
+}
+
+.lms-row-notice .lms-status-neutral {
+    border-color: #dfc668;
+    background: #fff9dc;
+    color: #684f00;
 }
 
 .lms-row-warning td:not(.lms-td-course) {
