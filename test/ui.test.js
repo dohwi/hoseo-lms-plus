@@ -224,7 +224,7 @@ test('renderDashboard uses yellow warning rows for non-urgent incomplete items',
 
     assert.equal(doc.querySelector('.lms-row-warning') !== null, true);
     assert.equal(doc.querySelector('.lms-row-neutral') === null, true);
-    assert.equal(doc.querySelector('.lms-state-badge-upcoming').textContent, '시작 전');
+    assert.equal(doc.querySelector('.lms-state-badge-upcoming'), null);
 });
 
 test('renderDashboard shows summary and empty learning state without stealing focus', function () {
@@ -276,7 +276,14 @@ test('renderDashboard includes info tooltip with status criteria', function () {
     });
 
     const tooltip = doc.querySelector('.lms-info-tooltip');
+    const infoButton = doc.getElementById('lms-info-btn');
     assert.ok(tooltip);
+    assert.equal(tooltip.hidden, true);
+    infoButton.click();
+    assert.equal(tooltip.hidden, false);
+    assert.equal(infoButton.getAttribute('aria-expanded'), 'true');
+    assert.equal(tooltip.getAttribute('role'), 'dialog');
+    assert.ok(tooltip.querySelector('.lms-info-popup-close'));
     assert.match(tooltip.textContent, /표기 기준/);
     assert.match(tooltip.textContent, /7일 이하/);
     assert.match(tooltip.textContent, /아직 시작 기간이 되지 않은 항목/);
@@ -287,6 +294,9 @@ test('renderDashboard includes info tooltip with status criteria', function () {
     assert.match(tooltip.textContent, /출석\/학습 현황 페이지/);
     assert.match(tooltip.textContent, /과제함, 퀴즈 목록, 상세 페이지/);
     assert.match(tooltip.textContent, /시작일이 오늘 이후/);
+    tooltip.querySelector('.lms-info-popup-close').click();
+    assert.equal(tooltip.hidden, true);
+    assert.equal(infoButton.getAttribute('aria-expanded'), 'false');
 });
 
 test('renderDashboard renders footer disclaimer text', function () {
