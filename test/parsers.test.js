@@ -145,6 +145,26 @@ test('parseCourseViewPage rejects external or incomplete ubboard notice URLs', f
     assert.equal(result.every(function (activity) { return activity.isCourseNotice === false; }), true);
 });
 
+test('parseUbboardNoticePage parses safe notice posts with table and list fallbacks', function () {
+    const html = fs.readFileSync(path.join(__dirname, 'fixtures', 'ubboard-notices.html'), 'utf8');
+    const result = parsers.parseUbboardNoticePage(html, '101', '테스트 강의', {
+        1: '[03.01~03.07]',
+        2: '[03.08~03.14]'
+    }, 'https://learn.hoseo.ac.kr', new Date('2026-03-15T12:00:00'));
+
+    assert.equal(result.length, 2);
+    assert.equal(result[0].type, '공지사항');
+    assert.match(result[0].nameHtml, /1-2분반 3\.1절 안내/);
+    assert.equal(result[0].weekNum, 2);
+    assert.equal(result[0].periodStr, '[03.08~03.14]');
+    assert.equal(result[0].optionsHtml, '03.12');
+    assert.equal(result[0].isNeutral, true);
+    assert.equal(result[1].weekNum, 1);
+    assert.equal(result[1].href, 'https://learn.hoseo.ac.kr/mod/ubboard/read.php?id=1136930&articleid=200');
+    assert.equal(result.some(function (notice) { return notice.nameHtml.includes('지난해 공지'); }), false);
+    assert.equal(result.some(function (notice) { return notice.nameHtml.includes('게시판 이동'); }), false);
+});
+
 test('parseQuizAttemptStatus detects completed attempts', function () {
     const result = parsers.parseQuizAttemptStatus('<div class="quizattemptsummary"><div class="statedetails">제출됨 2026-03-19</div></div>');
     assert.equal(result.isCompleted, true);
