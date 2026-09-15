@@ -191,6 +191,30 @@ test('data service falls back to course-wide matching when week parsing differs'
     assert.match(quiz.optionsHtml, /2026-03-31 12:15/);
 });
 
+test('data service refuses external activity detail requests', async function () {
+    const attendanceHtml = '<title>테스트 강의 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="1주차 [03.01~03.07]"></a></div></div>';
+    const assignHtml = '<table class="generaltable"><tbody><tr><td>1주차 [03.01~03.07]</td><td><a href="https://evil.example/steal">외부 과제</a></td><td>-</td><td>미제출</td><td>-</td></tr></tbody></table>';
+    const emptyTable = '<table class="generaltable"><tbody></tbody></table>';
+    const courseViewHtml = '<li class="section main"><h3 class="sectionname">1주차 [03.01~03.07]</h3><ul><li class="activity"><img class="activityicon" alt="과제"><a class="aalink" href="https://evil.example/steal"><span>외부 과제</span></a></li></ul></li>';
+    const fetchedUrls = [];
+
+    global.fetch = async function (url) {
+        fetchedUrls.push(url);
+        if (url.includes('/local/ubonattend/my_status.php')) return createResponse(attendanceHtml, url);
+        if (url.includes('/mod/assign/index.php')) return createResponse(assignHtml, url);
+        if (url.includes('/mod/quiz/index.php')) return createResponse(emptyTable, url);
+        if (url.includes('/course/view.php')) return createResponse(courseViewHtml, url);
+        throw new Error('Unexpected URL: ' + url);
+    };
+
+    const result = await dataService.create(createRuntime()).fetchAllCourseData([{ id: '101', isIrregular: false }]);
+    assert.equal(fetchedUrls.some(function (url) { return url.startsWith('https://evil.example'); }), false);
+    assert.equal(result.allActivities.length, 1);
+    assert.equal(result.allActivities[0].href, '#');
+    assert.equal(result.allActivities[0].isNeutral, false);
+    assert.equal(result.allActivities[0].statusText, '미제출');
+});
+
 test('data service reports request timeouts instead of hanging', async function () {
     global.fetch = function (_url, options) {
         return new Promise(function (_resolve, reject) {

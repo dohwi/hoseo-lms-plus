@@ -7,12 +7,21 @@ global.Node = dom.window.Node;
 
 const core = require('../lib/core.js');
 
-test('sanitizeHtmlToString strips unsafe attributes and protocols', function () {
-    const sanitized = core.sanitizeHtmlToString(dom.window.document, '<a href="javascript:alert(1)" onclick="alert(1)">test</a><script>alert(1)</script><span>ok</span>', { baseUrl: 'https://learn.hoseo.ac.kr' });
+test('sanitizeHtmlToString strips unsafe attributes, protocols, and external resources', function () {
+    const sanitized = core.sanitizeHtmlToString(dom.window.document, '<a href="javascript:alert(1)" onclick="alert(1)">test</a><img src="https://tracker.example/pixel.png"><script>alert(1)</script><span>ok</span>', { baseUrl: 'https://learn.hoseo.ac.kr' });
     assert.equal(sanitized.includes('javascript:'), false);
     assert.equal(sanitized.includes('onclick'), false);
+    assert.equal(sanitized.includes('tracker.example'), false);
     assert.equal(sanitized.includes('<script'), false);
     assert.equal(sanitized.includes('<span>ok</span>'), true);
+});
+
+test('isSafeUrl only accepts same-origin HTTP(S) URLs', function () {
+    assert.equal(core.isSafeUrl('/mod/page/view.php?id=1', 'https://learn.hoseo.ac.kr'), true);
+    assert.equal(core.isSafeUrl('https://learn.hoseo.ac.kr/mod/page/view.php?id=1', 'https://learn.hoseo.ac.kr'), true);
+    assert.equal(core.isSafeUrl('https://example.com/mod/page/view.php?id=1', 'https://learn.hoseo.ac.kr'), false);
+    assert.equal(core.isSafeUrl('http://learn.hoseo.ac.kr/mod/page/view.php?id=1', 'https://learn.hoseo.ac.kr'), false);
+    assert.equal(core.isSafeUrl('javascript:alert(1)', 'https://learn.hoseo.ac.kr'), false);
 });
 
 test('buildCacheKey changes with user and course ids', function () {
