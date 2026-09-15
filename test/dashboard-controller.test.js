@@ -89,6 +89,61 @@ test('dashboard controller renders dashboard from fetched data', async function 
     controller.cleanup();
 });
 
+test('dashboard controller removes keyboard navigation when a session expires', async function () {
+    const dom = new JSDOM('<!doctype html><html><body><div class="lists"><div class="course" data-id="101"></div></div><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
+    let renderedWeek = null;
+    let messageTitle = null;
+    global.HoseoLmsPlusUi = {
+        buildHostMount: function (doc) {
+            const mount = doc.createElement('section');
+            mount.id = core.SELECTORS.dashboardMountId;
+            doc.body.appendChild(mount);
+            return { mount: mount, host: doc.body };
+        },
+        renderLoading: function () {},
+        renderMessage: function (_doc, _mount, title) { messageTitle = title; },
+        renderDashboard: function (_doc, _mount, state) { renderedWeek = state.week; },
+        restoreHost: function () {},
+        updateProgress: function () {}
+    };
+    let calls = 0;
+    global.HoseoLmsPlusDataService = {
+        create: function () {
+            return {
+                fetchAllCourseData: async function () {
+                    calls += 1;
+                    if (calls === 2) return { sessionExpired: true };
+                    return {
+                        allItems: [{ weekNum: 1, periodStr: '[03.01~03.07]' }],
+                        allAssigns: [{ weekNum: 2, periodStr: '[03.08~03.14]' }],
+                        allActivities: [{ courseId: '101', courseName: '테스트 강의', weekNum: 1, type: '동영상', isCompleted: false, isNeutral: false }],
+                        allCourseNames: [], warnings: [], sessionExpired: false
+                    };
+                }
+            };
+        }
+    };
+    delete require.cache[require.resolve('../lib/dashboard-controller.js')];
+    const dc = require('../lib/dashboard-controller.js');
+    const controller = dc.create({
+        document: dom.window.document, extensionStorage: null,
+        runtime: { resetRequestQueue: function () {} },
+        storage: { getItem: function () { return null; }, setItem: function () {}, removeItem: function () {}, key: function () { return null; }, length: 0 }
+    });
+
+    controller.replacePageContent(false);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    assert.equal(renderedWeek, 2);
+
+    controller.replacePageContent(true);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    assert.equal(messageTitle, '로그인 세션이 만료되었습니다.');
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    assert.equal(renderedWeek, 2);
+    controller.cleanup();
+});
+
 test('dashboard controller cleanup restores host when dashboard is mounted', async function () {
     const dom = new JSDOM('<!doctype html><html><body><div class="lists"><div class="course" data-id="101"></div></div><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
     global.window = dom.window;

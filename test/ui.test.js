@@ -68,6 +68,28 @@ test('renderDashboard uses svg icon buttons for header controls', function () {
     assert.equal(doc.getElementById('lms-info-btn').getAttribute('title'), null);
 });
 
+test('renderDashboard adds a visually hidden course context to each continuation of a rowspan', function () {
+    const dom = new JSDOM('<!doctype html><html><body><section id="mount"></section></body></html>');
+    const doc = dom.window.document;
+
+    ui.renderDashboard(doc, doc.getElementById('mount'), {
+        week: 3,
+        periodStr: '',
+        activities: [
+            { courseId: '101', courseName: '접근성 강의', weekNum: 3, type: '동영상', nameHtml: '첫 자료', optionsHtml: '-', isCompleted: false, isNeutral: false },
+            { courseId: '101', courseName: '접근성 강의', weekNum: 3, type: '과제', nameHtml: '둘째 자료', optionsHtml: '-', isCompleted: false, isNeutral: false }
+        ],
+        incActivities: [], courseNames: [], warnings: [], canPrev: false, canNext: false,
+        baseUrl: core.DEFAULT_BASE_URL,
+        handlers: { onPrev: function () {}, onNext: function () {}, onRefresh: function () {} }
+    });
+
+    const rows = doc.querySelectorAll('.lms-table tbody tr');
+    assert.equal(rows[0].querySelector('.lms-td-course').rowSpan, 2);
+    assert.equal(rows[1].querySelector('.lms-td-course'), null);
+    assert.equal(rows[1].querySelector('.lms-sr-only').textContent, '강좌명: 접근성 강의. ');
+});
+
 test('renderDashboard shows notice posts as neutral learning rows with icon', function () {
     const dom = new JSDOM('<!doctype html><html><body><section id="mount"></section></body></html>');
     const doc = dom.window.document;
@@ -301,6 +323,39 @@ test('renderDashboard includes info tooltip with status criteria', function () {
     tooltip.querySelector('.lms-info-popup-close').click();
     assert.equal(tooltip.hidden, true);
     assert.equal(infoButton.getAttribute('aria-expanded'), 'false');
+});
+
+test('info modal isolates dashboard content and restores it on close and teardown', function () {
+    const dom = new JSDOM('<!doctype html><html><body><section id="mount" class="lms-dashboard"></section></body></html>');
+    const doc = dom.window.document;
+    const mount = doc.getElementById('mount');
+    const state = {
+        week: 4, periodStr: '', activities: [], incActivities: [], courseNames: [], warnings: [], canPrev: true, canNext: true,
+        baseUrl: core.DEFAULT_BASE_URL,
+        handlers: { onPrev: function () {}, onNext: function () {}, onRefresh: function () {} }
+    };
+    ui.renderDashboard(doc, mount, state);
+
+    const infoButton = doc.getElementById('lms-info-btn');
+    const title = doc.querySelector('.lms-title-wrap');
+    infoButton.focus();
+    infoButton.click();
+    assert.equal(title.getAttribute('aria-hidden'), 'true');
+    assert.equal(doc.activeElement.className, 'lms-info-popup-close');
+    const tabEvent = new dom.window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    doc.dispatchEvent(tabEvent);
+    assert.equal(tabEvent.defaultPrevented, true);
+    assert.equal(doc.activeElement.className, 'lms-info-popup-close');
+
+    doc.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(title.hasAttribute('aria-hidden'), false);
+    assert.equal(doc.activeElement, infoButton);
+
+    infoButton.click();
+    ui.renderLoading(doc, mount);
+    assert.equal(title.hasAttribute('aria-hidden'), false);
+    doc.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(doc.querySelector('.lms-info-tooltip'), null);
 });
 
 test('renderDashboard renders footer disclaimer text', function () {
