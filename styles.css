@@ -465,6 +465,25 @@
     color: var(--lms-primary-dark);
 }
 
+.lms-activity-type {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.lms-activity-type-notice {
+    color: #8a6700;
+    font-weight: 700;
+}
+
+.lms-activity-type-icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    color: #d39e00;
+}
+
 .lms-thead-row {
     background-color: #e8f4fc;
     border-bottom: 1px solid var(--lms-border) !important;
@@ -726,6 +745,7 @@
     .lms-info-tooltip::after {
         right: calc(50% - 7px);
     }
+
 
     .lms-progress-container,
     .lms-week-center-inline {

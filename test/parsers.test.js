@@ -115,6 +115,57 @@ test('parseCourseViewPage fixture extracts activity metadata and ignored types',
     assert.equal(result[1].isIgnoredType, true);
 });
 
+test('parseCourseViewPage identifies ubboard course notices', function () {
+    const html = `
+        <ul class="weeks"><li class="section"><h3 class="sectionname">공지사항</h3><ul>
+            <li class="activity"><img class="activityicon" alt="게시판"><a class="aalink" href="/mod/ubboard/view.php?id=1136930"><span>공지사항</span></a></li>
+        </ul></li></ul>
+    `;
+
+    const result = parsers.parseCourseViewPage(html, '101', '테스트 강의', {}, 'https://learn.hoseo.ac.kr');
+
+    assert.equal(result.length, 1);
+    assert.equal(result[0].isCourseNotice, true);
+    assert.equal(result[0].isIgnoredType, true);
+    assert.equal(result[0].href, 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1136930');
+    assert.equal(result[0].activityKey, '/mod/ubboard/view.php?id=1136930');
+});
+
+test('parseCourseViewPage rejects external or incomplete ubboard notice URLs', function () {
+    const html = `
+        <ul class="weeks"><li class="section"><h3 class="sectionname">공지사항</h3><ul>
+            <li class="activity"><img class="activityicon" alt="게시판"><a class="aalink" href="https://example.com/mod/ubboard/view.php?id=1">외부 공지</a></li>
+            <li class="activity"><img class="activityicon" alt="게시판"><a class="aalink" href="/mod/ubboard/view.php">잘못된 공지</a></li>
+        </ul></li></ul>
+    `;
+
+    const result = parsers.parseCourseViewPage(html, '101', '테스트 강의', {}, 'https://learn.hoseo.ac.kr');
+
+    assert.equal(result.length, 2);
+    assert.equal(result.every(function (activity) { return activity.isCourseNotice === false; }), true);
+});
+
+test('parseUbboardNoticePage parses safe notice posts with table and list fallbacks', function () {
+    const html = fs.readFileSync(path.join(__dirname, 'fixtures', 'ubboard-notices.html'), 'utf8');
+    const result = parsers.parseUbboardNoticePage(html, '101', '테스트 강의', {
+        1: '[03.01~03.07]',
+        2: '[03.08~03.14]'
+    }, 'https://learn.hoseo.ac.kr', new Date('2026-03-15T12:00:00'));
+
+    assert.equal(result.length, 3);
+    assert.equal(result[0].type, '공지사항');
+    assert.match(result[0].nameHtml, /1-2분반 3\.1절 안내/);
+    assert.equal(result[0].weekNum, 2);
+    assert.equal(result[0].periodStr, '[03.08~03.14]');
+    assert.equal(result[0].optionsHtml, '03.12');
+    assert.equal(result[0].isNeutral, true);
+    assert.equal(result[1].weekNum, 1);
+    assert.equal(result[1].href, 'https://learn.hoseo.ac.kr/mod/ubboard/read.php?id=1136930&articleid=200');
+    assert.equal(result.some(function (notice) { return notice.nameHtml.includes('두 자리 연도 공지') && notice.weekNum === 2; }), true);
+    assert.equal(result.some(function (notice) { return notice.nameHtml.includes('지난해 공지'); }), false);
+    assert.equal(result.some(function (notice) { return notice.nameHtml.includes('게시판 이동'); }), false);
+});
+
 test('parseQuizAttemptStatus detects completed attempts', function () {
     const result = parsers.parseQuizAttemptStatus('<div class="quizattemptsummary"><div class="statedetails">제출됨 2026-03-19</div></div>');
     assert.equal(result.isCompleted, true);
