@@ -40,7 +40,7 @@ ES2022, `sourceType: 'script'` (ESM 아님), 번들러 없음.
 
 ```
 키 형식: lms_plus_cache:v{CACHE_VERSION}:{userId}:{sortedCourseIds,}
-예: lms_plus_cache:v3:101:202,303,404
+예: lms_plus_cache:v4:101:202,303,404
 
 TTL: 6시간 (CACHE_TTL = 21600000ms)
 저장소: chrome.storage.local (비동기) 우선, localStorage (동기) fallback
@@ -66,6 +66,9 @@ TTL: 6시간 (CACHE_TTL = 21600000ms)
 
 ### 미매칭
 해당 활동은 `isNeutral=true`로 표시 (상태 확인 불가). 파일/토론/Forum 타입은 기본적으로 `isIgnoredType=true`.
+
+### 강좌 공지사항
+강좌 메인 페이지의 `/mod/ubboard/view.php?id=...` 게시판을 추가 조회해 개별 공지글을 파싱합니다. 공지 작성일이 포함되는 주차의 `Activity`로 통합하며, `type='공지사항'`, `isNeutral=true`로 전체 학습 자료에만 표시합니다. 공지 게시판 요청 실패는 해당 강좌 경고로 남기고 다른 데이터 렌더링은 계속합니다.
 
 ## 셀렉터 외부화
 
