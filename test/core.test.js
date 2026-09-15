@@ -7,6 +7,10 @@ global.Node = dom.window.Node;
 
 const core = require('../lib/core.js');
 
+function cachePayload(extra) {
+    return Object.assign({ allItems: [], allAssigns: [], allActivities: [], allCourseNames: [], warnings: [], sessionExpired: false }, extra);
+}
+
 test('sanitizeHtmlToString strips unsafe attributes, protocols, and external resources', function () {
     const sanitized = core.sanitizeHtmlToString(dom.window.document, '<a href="javascript:alert(1)" onclick="alert(1)">test</a><img src="https://tracker.example/pixel.png"><script>alert(1)</script><span>ok</span>', { baseUrl: 'https://learn.hoseo.ac.kr' });
     assert.equal(sanitized.includes('javascript:'), false);
@@ -147,8 +151,8 @@ test('findCurrentWeekIndex handles year crossing ranges', function () {
 test('createCacheStore prunes expired entries without stopping early', function () {
     const storage = {
         data: {
-            'lms_plus_cache:v3:u1:1': JSON.stringify({ timestamp: Date.now() - core.CACHE_TTL - 1000, data: {} }),
-            'lms_plus_cache:v3:u1:2': JSON.stringify({ timestamp: Date.now(), data: { ok: true } })
+            'lms_plus_cache:v3:u1:1': JSON.stringify({ timestamp: Date.now() - core.CACHE_TTL - 1000, data: cachePayload() }),
+            'lms_plus_cache:v3:u1:2': JSON.stringify({ timestamp: Date.now(), data: cachePayload({ ok: true }) })
         },
         get length() {
             return Object.keys(this.data).length;
@@ -171,7 +175,7 @@ test('createCacheStore prunes expired entries without stopping early', function 
     const activeKey = 'lms_plus_cache:v3:u1:2';
     const result = cacheStore.get(activeKey);
 
-    assert.deepEqual(result.data, { ok: true });
+    assert.deepEqual(result.data, cachePayload({ ok: true }));
     assert.equal(storage.getItem('lms_plus_cache:v3:u1:1'), null);
 });
 
@@ -179,8 +183,8 @@ test('createAsyncCacheStore uses extension storage and prunes expired entries', 
     const getCalls = [];
     const area = {
         items: {
-            'lms_plus_cache:v3:u1:1': { timestamp: Date.now() - core.CACHE_TTL - 1, data: { stale: true } },
-            'lms_plus_cache:v3:u1:2': { timestamp: Date.now(), data: { fresh: true } }
+            'lms_plus_cache:v3:u1:1': { timestamp: Date.now() - core.CACHE_TTL - 1, data: cachePayload({ stale: true }) },
+            'lms_plus_cache:v3:u1:2': { timestamp: Date.now(), data: cachePayload({ fresh: true }) }
         },
         async get(key) {
             getCalls.push(key);
@@ -200,7 +204,7 @@ test('createAsyncCacheStore uses extension storage and prunes expired entries', 
     const cacheStore = core.createAsyncCacheStore(area, null);
     const result = await cacheStore.get('lms_plus_cache:v3:u1:2');
 
-    assert.deepEqual(result.data, { fresh: true });
+    assert.deepEqual(result.data, cachePayload({ fresh: true }));
     assert.equal(area.items['lms_plus_cache:v3:u1:1'], undefined);
     assert.deepEqual(getCalls, [null, 'lms_plus_cache:v3:u1:2']);
 });
@@ -209,8 +213,8 @@ test('createAsyncCacheStore evicts old caches and retries after quota failure', 
     let setAttempts = 0;
     const area = {
         items: {
-            'lms_plus_cache:v3:u1:old': { timestamp: Date.now() - 2000, data: { old: true } },
-            'lms_plus_cache:v3:u1:newer': { timestamp: Date.now() - 1000, data: { newer: true } }
+            'lms_plus_cache:v3:u1:old': { timestamp: Date.now() - 2000, data: cachePayload({ old: true }) },
+            'lms_plus_cache:v3:u1:newer': { timestamp: Date.now() - 1000, data: cachePayload({ newer: true }) }
         },
         async get() {
             return { ...this.items };
@@ -226,12 +230,49 @@ test('createAsyncCacheStore evicts old caches and retries after quota failure', 
     };
 
     const cacheStore = core.createAsyncCacheStore(area, null);
-    await cacheStore.set('lms_plus_cache:v3:u1:current', { current: true });
+    await cacheStore.set('lms_plus_cache:v3:u1:current', cachePayload({ current: true }));
 
     assert.equal(setAttempts, 2);
-    assert.deepEqual(area.items['lms_plus_cache:v3:u1:current'].data, { current: true });
+    assert.deepEqual(area.items['lms_plus_cache:v3:u1:current'].data, cachePayload({ current: true }));
     assert.equal(area.items['lms_plus_cache:v3:u1:old'], undefined);
-    assert.deepEqual(area.items['lms_plus_cache:v3:u1:newer'].data, { newer: true });
+    assert.deepEqual(area.items['lms_plus_cache:v3:u1:newer'].data, cachePayload({ newer: true }));
+});
+
+test('cache stores reject invalid and oversized payloads', async function () {
+    const storage = { data: {}, get length() { return 0; }, key() { return null; }, getItem(key) { return this.data[key] || null; }, setItem(key, value) { this.data[key] = value; }, removeItem(key) { delete this.data[key]; } };
+    const cache = core.createCacheStore(storage);
+    cache.set('lms_plus_cache:v7:u:bad', {});
+    cache.set('lms_plus_cache:v7:u:large', cachePayload({ warnings: ['x'.repeat(core.CACHE_MAX_PAYLOAD_BYTES)] }));
+    assert.deepEqual(storage.data, {});
+
+    const fallback = { setItem() { throw new Error('fallback must not be used'); }, getItem() { throw new Error('fallback must not be used'); }, removeItem() {} };
+    const asyncCache = core.createAsyncCacheStore({ async set() { throw new Error('storage failure'); }, async get() { throw new Error('storage failure'); }, async remove() {} }, fallback);
+    await asyncCache.set('lms_plus_cache:v7:u:1', cachePayload());
+});
+
+test('request queue enforces concurrency and cancellation', async function () {
+    const queue = core.createRequestQueue(1);
+    let active = 0;
+    let peak = 0;
+    let release;
+    const first = queue.enqueue(async function (signal) {
+        active += 1;
+        peak = Math.max(peak, active);
+        await new Promise(function (resolve, reject) {
+            release = resolve;
+            if (signal.aborted) reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
+            else signal.addEventListener('abort', function () { reject(Object.assign(new Error('aborted'), { name: 'AbortError' })); }, { once: true });
+        });
+        active -= 1;
+    });
+    const second = queue.enqueue(async function () {});
+    const firstResult = first.then(function () { return null; }, function (error) { return error; });
+    const secondResult = second.then(function () { return null; }, function (error) { return error; });
+    queue.cancelAll();
+    assert.equal((await firstResult).name, 'AbortError');
+    assert.equal((await secondResult).name, 'AbortError');
+    assert.equal(peak, 1);
+    if (release) release();
 });
 
 test('getManifestVersion returns empty string when extension runtime is unavailable', function () {
