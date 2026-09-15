@@ -152,7 +152,7 @@ test('parseUbboardNoticePage parses safe notice posts with table and list fallba
         2: '[03.08~03.14]'
     }, 'https://learn.hoseo.ac.kr', new Date('2026-03-15T12:00:00'));
 
-    assert.equal(result.length, 2);
+    assert.equal(result.length, 3);
     assert.equal(result[0].type, '공지사항');
     assert.match(result[0].nameHtml, /1-2분반 3\.1절 안내/);
     assert.equal(result[0].weekNum, 2);
@@ -161,6 +161,7 @@ test('parseUbboardNoticePage parses safe notice posts with table and list fallba
     assert.equal(result[0].isNeutral, true);
     assert.equal(result[1].weekNum, 1);
     assert.equal(result[1].href, 'https://learn.hoseo.ac.kr/mod/ubboard/read.php?id=1136930&articleid=200');
+    assert.equal(result.some(function (notice) { return notice.nameHtml.includes('두 자리 연도 공지') && notice.weekNum === 2; }), true);
     assert.equal(result.some(function (notice) { return notice.nameHtml.includes('지난해 공지'); }), false);
     assert.equal(result.some(function (notice) { return notice.nameHtml.includes('게시판 이동'); }), false);
 });
