@@ -191,50 +191,57 @@
 }
 
 .lms-info-tooltip-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex: 0 0 auto;
-    min-width: 82px;
-    padding: 5px 9px;
-    border-radius: 2px;
+    min-width: 104px;
+    min-height: 38px;
+    padding: 7px 10px;
+    border-radius: 0;
     border: 1px solid transparent;
     font-size: 11px;
     font-weight: 700;
-    line-height: 1.4;
+    line-height: 1.35;
     text-align: center;
 }
 
+/* 실제 학습 자료 표의 행 상태를 축소해서 보여주는 미리보기 */
 .lms-info-tooltip-badge-success {
-    background: #edf9f0;
-    border-color: #b8e3c2;
-    color: #1e7a38;
+    background: var(--lms-row-success);
+    border-color: #c8dfce;
+    color: var(--lms-success);
 }
 
 .lms-info-tooltip-badge-urgent {
-    background: #fff0f0;
-    border-color: #f2b9b7;
-    color: #b53935;
+    background: var(--lms-danger-light);
+    border-width: 2px 3px;
+    border-color: var(--lms-danger);
+    color: var(--lms-danger);
 }
 
 .lms-info-tooltip-badge-warning {
-    background: #fff6d9;
-    border-color: #ead48a;
-    color: #8a6a00;
+    background: var(--lms-row-warning);
+    border-color: #e5d8a5;
+    color: #725a05;
 }
 
 .lms-info-tooltip-badge-danger {
-    background: #fff1ef;
-    border-color: #efc0ba;
-    color: #b24b40;
+    background: var(--lms-row-danger);
+    border-color: #ead1d1;
+    color: #9b403d;
 }
 
 .lms-info-tooltip-badge-notice {
-    background: #fff9dc;
-    border-color: #dfc668;
+    background: #fffdf5;
+    border-width: 2px 3px;
+    border-color: #d0a900;
     color: #684f00;
 }
 
 .lms-info-tooltip-badge-neutral {
-    background: #f6f7f9;
-    border-color: #d8dee6;
+    background: #fff;
+    border-color: var(--lms-border);
     color: #5f6b7a;
 }
 

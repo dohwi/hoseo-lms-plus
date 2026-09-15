@@ -291,7 +291,8 @@ test('renderDashboard includes info tooltip with status criteria', function () {
     assert.match(tooltip.textContent, /시작 기간은 지났지만 마감까지 8일 이상 남은 미완료 항목/);
     assert.match(tooltip.textContent, /완료 상태를 판정하지 않는 항목/);
     assert.equal(doc.querySelectorAll('.lms-info-tooltip-badge').length, 6);
-    assert.match(tooltip.textContent, /노란 테두리/);
+    assert.equal(tooltip.querySelector('.lms-info-tooltip-badge-urgent').textContent, '마감 임박');
+    assert.equal(tooltip.querySelector('.lms-info-tooltip-badge-notice').textContent, '공지사항');
     assert.match(tooltip.textContent, /어떤 주차에도 포함되지 않으면 기타/);
     assert.match(tooltip.textContent, /판정 기준 상세/);
     assert.match(tooltip.textContent, /출석\/학습 현황 페이지/);
