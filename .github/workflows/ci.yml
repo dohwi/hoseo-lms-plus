@@ -24,10 +24,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        # actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        # actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
@@ -35,11 +37,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Run lint
         run: npm run lint
 
       - name: Run tests
         run: npm test
+
+      - name: Build all targets
+        run: npm run build:all
+
+      - name: Verify ZIP allowlist
+        run: npm run verify:zip
 
       - name: Run Firefox pre-check
         run: npm run lint:firefox
@@ -53,12 +64,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        # actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        # actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
@@ -72,6 +85,9 @@ jobs:
 
       - name: Build all targets
         run: npm run build:all
+
+      - name: Verify ZIP allowlist
+        run: npm run verify:zip
 
       - name: Create checksums
         run: sha256sum dist/chrome/*.zip dist/firefox/*.zip > dist/SHA256SUMS
@@ -91,7 +107,8 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.release_check.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v3
+        # softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         with:
           tag_name: v${{ steps.version.outputs.value }}
           name: v${{ steps.version.outputs.value }}
