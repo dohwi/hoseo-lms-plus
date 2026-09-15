@@ -29,9 +29,10 @@
 }
 
 .lms-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
     align-items: center;
+    gap: 20px;
     padding: 20px 30px;
     margin-bottom: 0;
 }
@@ -40,8 +41,10 @@
 .lms-title-wrap {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex: 0 0 auto;
+    gap: 9px;
+    min-width: 0;
+    justify-self: start;
+    white-space: nowrap;
 }
 
 .lms-title {
@@ -56,7 +59,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
-    flex: 0 0 auto;
+    justify-self: end;
 }
 
 .lms-info-tooltip-wrap {
@@ -266,7 +269,6 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    flex: 1;
     justify-content: center;
     padding: 0;
     margin: 0;
@@ -366,15 +368,17 @@
 
 /* 버전 뱃지 */
 .lms-version-badge {
-    display: inline-block;
-    padding: 2px 10px 4px;
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
     font-size: 11px;
     font-weight: 600;
-    color: var(--lms-primary);
-    background-color: #e8f4fc;
-    border: 1px solid #b8daef;
-    border-radius: 12px;
-    vertical-align: middle;
+    line-height: 1;
+    color: #526577;
+    background-color: #f4f7f9;
+    border: 1px solid #ccd6df;
+    border-radius: 2px;
 }
 
 .lms-course-list {
@@ -436,11 +440,11 @@
     font-weight: 700;
 }
 
-.lms-summary-success { border-top: 3px solid var(--lms-success); }
-.lms-summary-danger { border-top: 3px solid var(--lms-danger); }
-.lms-summary-notice { border-top: 3px solid #9a7200; }
-.lms-summary-primary { border-top: 3px solid var(--lms-primary); }
-.lms-summary-muted { border-top: 3px solid #9aa5b1; }
+.lms-summary-primary .lms-summary-value { color: #315a78; }
+.lms-summary-success .lms-summary-value { color: #29643a; }
+.lms-summary-danger .lms-summary-value { color: #8f3b38; }
+.lms-summary-notice .lms-summary-value { color: #755b14; }
+.lms-summary-muted .lms-summary-value { color: #687684; }
 
 .lms-btn {
     font-weight: bold;
@@ -844,14 +848,20 @@
     }
 
     .lms-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
         gap: 16px;
         padding: 16px;
     }
 
-    .lms-header,
     .lms-course-list {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .lms-title-wrap {
+        align-self: flex-start;
     }
 
     .lms-week-nav-inline {

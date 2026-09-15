@@ -40,7 +40,7 @@ ES2022, `sourceType: 'script'` (ESM 아님), 번들러 없음.
 
 ```
 키 형식: lms_plus_cache:v{CACHE_VERSION}:{userId}:{sortedCourseIds,}
-예: lms_plus_cache:v6:101:202,303,404
+예: lms_plus_cache:v7:101:202,303,404
 
 TTL: 6시간 (CACHE_TTL = 21600000ms)
 저장소: chrome.storage.local (비동기) 우선, localStorage (동기) fallback
