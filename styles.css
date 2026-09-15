@@ -761,8 +761,8 @@
 
 .lms-row-notice td:not(.lms-td-course) {
     background-color: #fffdf5 !important;
-    border-top: 1px solid #e2c766 !important;
-    border-bottom: 1px solid #e2c766 !important;
+    border-top: 2px solid #d0a900 !important;
+    border-bottom: 2px solid #d0a900 !important;
 }
 
 .lms-row-notice .lms-td-course + td,
@@ -771,7 +771,7 @@
 }
 
 .lms-row-notice td:last-child {
-    border-right: 1px solid #e2c766 !important;
+    border-right: 3px solid #d0a900 !important;
 }
 
 .lms-row-notice .lms-td-left a {
