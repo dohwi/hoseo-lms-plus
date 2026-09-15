@@ -105,7 +105,9 @@ test('renderDashboard shows notice posts as neutral learning rows with icon', fu
     assert.match(row.textContent, /공지사항/);
     assert.match(row.textContent, /3주차 안내/);
     assert.match(row.textContent, /03\.12/);
+    assert.equal(row.querySelector('.lms-state-badge'), null);
     assert.equal(doc.querySelectorAll('.lms-table-wrap').length, 1);
+    assert.equal(row.querySelector('.lms-status-neutral').textContent, '공지');
 });
 
 test('renderDashboard shows default period text for 기타 week', function () {
@@ -178,6 +180,7 @@ test('renderDashboard treats 7-day remaining tasks as urgent', function () {
     });
 
     assert.equal(doc.querySelector('.lms-row-urgent') !== null, true);
+    assert.equal(doc.querySelector('.lms-state-badge-urgent').textContent, '마감 임박');
 });
 
 test('renderDashboard uses yellow warning rows for non-urgent incomplete items', function () {
@@ -221,6 +224,33 @@ test('renderDashboard uses yellow warning rows for non-urgent incomplete items',
 
     assert.equal(doc.querySelector('.lms-row-warning') !== null, true);
     assert.equal(doc.querySelector('.lms-row-neutral') === null, true);
+    assert.equal(doc.querySelector('.lms-state-badge-upcoming').textContent, '시작 전');
+});
+
+test('renderDashboard shows summary and empty learning state without stealing focus', function () {
+    const dom = new JSDOM('<!doctype html><html><body><button id="before">기존 버튼</button><section id="mount" tabindex="-1"></section></body></html>');
+    const doc = dom.window.document;
+    const mount = doc.getElementById('mount');
+    const before = doc.getElementById('before');
+    before.focus();
+
+    ui.renderDashboard(doc, mount, {
+        week: 5,
+        periodStr: '[04.01~04.07]',
+        activities: [],
+        incActivities: [],
+        courseNames: [],
+        warnings: [],
+        canPrev: false,
+        canNext: false,
+        baseUrl: core.DEFAULT_BASE_URL,
+        handlers: { onPrev: function () {}, onNext: function () {}, onRefresh: function () {} }
+    });
+
+    assert.equal(doc.activeElement, before);
+    assert.equal(doc.querySelectorAll('.lms-summary-item').length, 4);
+    assert.match(doc.querySelector('.lms-empty-cell').textContent, /등록된 학습 자료가 없습니다/);
+    assert.equal(doc.querySelector('.lms-table-wrap').getAttribute('tabindex'), '0');
 });
 
 test('renderDashboard includes info tooltip with status criteria', function () {
@@ -251,7 +281,7 @@ test('renderDashboard includes info tooltip with status criteria', function () {
     assert.match(tooltip.textContent, /7일 이하/);
     assert.match(tooltip.textContent, /아직 시작 기간이 되지 않은 항목/);
     assert.match(tooltip.textContent, /시작 기간은 지났지만 마감까지 8일 이상 남은 미완료 항목/);
-    assert.match(tooltip.textContent, /상태 확인 대상이 아닌 항목/);
+    assert.match(tooltip.textContent, /완료 상태를 판정하지 않는 항목/);
     assert.equal(doc.querySelectorAll('.lms-info-tooltip-badge').length, 5);
     assert.match(tooltip.textContent, /판정 기준 상세/);
     assert.match(tooltip.textContent, /출석\/학습 현황 페이지/);

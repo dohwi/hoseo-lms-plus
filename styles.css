@@ -4,8 +4,8 @@
     --lms-primary-dark: #003366;
     --lms-border: #dee2e6;
     --lms-border-light: #f0f0f0;
-    --lms-success: #28a745;
-    --lms-danger: #d9534f;
+    --lms-success: #1e7e34;
+    --lms-danger: #c9302c;
     --lms-danger-dark: #c9302c;
     --lms-danger-border: #f5c6cb;
     --lms-danger-light: #fdf1f2;
@@ -365,7 +365,44 @@
     color: var(--lms-text-light);
     line-height: 1.5;
     margin-left: 4px;
+    overflow-wrap: anywhere;
 }
+
+.lms-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 24px;
+}
+
+.lms-summary-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--lms-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.lms-summary-value {
+    color: var(--lms-primary-dark);
+    font-size: 22px;
+    line-height: 1;
+}
+
+.lms-summary-label {
+    color: #56616f;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.lms-summary-success { border-left: 4px solid var(--lms-success); }
+.lms-summary-danger { border-left: 4px solid var(--lms-danger); }
+.lms-summary-notice { border-left: 4px solid #9a7200; }
+.lms-summary-primary { border-left: 4px solid var(--lms-primary); }
+.lms-summary-muted { border-left: 4px solid #9aa5b1; }
 
 .lms-btn {
     font-weight: bold;
@@ -426,6 +463,13 @@
 .lms-table-wrap {
     overflow-x: auto;
     margin-bottom: 30px;
+    border-radius: 6px;
+    scrollbar-gutter: stable;
+}
+
+.lms-table-wrap:focus-visible {
+    outline: 3px solid rgba(26, 94, 154, 0.25);
+    outline-offset: 2px;
 }
 
 .lms-table {
@@ -531,6 +575,7 @@
 .lms-td-left {
     text-align: left;
     padding-left: 15px;
+    overflow-wrap: anywhere;
 }
 
 .lms-td-week {
@@ -544,8 +589,41 @@
 }
 
 .lms-status-fail {
-    color: var(--lms-danger);
+    color: var(--lms-danger-dark);
     font-weight: bold;
+}
+
+.lms-status-neutral {
+    display: inline-block;
+    padding: 2px 7px;
+    border: 1px solid #cbd3dc;
+    border-radius: 999px;
+    background: #f4f6f8;
+    color: #4f5d6b;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.lms-state-badge {
+    display: inline-block;
+    margin-right: 7px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: 1px;
+}
+
+.lms-state-badge-urgent {
+    border: 1px solid #d98c89;
+    background: #fff;
+    color: #a32622;
+}
+
+.lms-state-badge-upcoming {
+    border: 1px solid #d8bf62;
+    background: #fffdf5;
+    color: #725800;
 }
 
 .lms-td-options {
@@ -702,9 +780,14 @@
 }
 
 .lms-warning-title {
-    margin: 0 0 10px;
-    color: #8a5a00;
+    color: #725000;
+    cursor: pointer;
     font-size: 15px;
+    font-weight: 700;
+}
+
+.lms-warning-card[open] .lms-warning-title {
+    margin-bottom: 10px;
 }
 
 .lms-warning-list {
@@ -713,21 +796,64 @@
     color: #8a5a00;
 }
 
+.lms-empty-cell {
+    padding: 34px 16px !important;
+    color: #697586;
+    text-align: center;
+}
+
 #lms-custom-dashboard td {
     border-bottom: 1px solid var(--lms-border);
 }
 
 @media (max-width: 768px) {
+    .lms-dashboard {
+        padding: 10px;
+    }
+
+    .lms-header {
+        gap: 16px;
+        padding: 16px;
+    }
+
     .lms-header,
-    .lms-course-list,
-    .lms-week-nav-inline {
+    .lms-course-list {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .lms-header-actions,
+    .lms-week-nav-inline {
+        width: 100%;
+    }
+
+    .lms-header-actions {
+        align-self: flex-end;
+        flex-direction: row;
+    }
+
     .lms-message-actions {
         flex-direction: column;
+    }
+
+    .lms-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lms-table {
+        min-width: 720px;
+    }
+
+    .lms-table-wrap::before {
+        content: '↔ 좌우로 스크롤해 전체 내용을 확인하세요';
+        position: sticky;
+        left: 0;
+        display: block;
+        width: max-content;
+        max-width: calc(100vw - 36px);
+        padding: 0 4px 7px;
+        color: #56616f;
+        font-size: 11px;
+        font-weight: 600;
     }
 
     .lms-info-tooltip {
