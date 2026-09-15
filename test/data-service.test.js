@@ -68,8 +68,8 @@ test('data service keeps passive resources neutral and matches watched videos mo
         '<h3 class="sectionname">공지사항</h3>',
         '<ul>',
         '<li class="activity">',
-        '<img class="activityicon" alt="URL">',
-        '<a class="aalink" href="/mod/url/view.php?id=501"><span>강의 안내 링크</span></a>',
+        '<img class="activityicon" alt="게시판">',
+        '<a class="aalink" href="/mod/ubboard/view.php?id=1136930"><span>공지사항</span></a>',
         '</li>',
         '</ul>',
         '</li>',
@@ -81,6 +81,9 @@ test('data service keeps passive resources neutral and matches watched videos mo
         if (url.includes('/mod/assign/index.php')) return createResponse(assignHtml, url);
         if (url.includes('/mod/quiz/index.php')) return createResponse(quizHtml, url);
         if (url.includes('/course/view.php')) return createResponse(courseViewHtml, url);
+        if (url.includes('/mod/ubboard/view.php?id=1136930')) {
+            return createResponse('<table class="ubboard-list"><tbody><tr><td><a href="/mod/ubboard/read.php?id=1136930&amp;articleid=10">개강 공지</a></td><td>2026.03.12</td></tr></tbody></table>', url);
+        }
         throw new Error('Unexpected URL: ' + url);
     };
 
@@ -90,6 +93,7 @@ test('data service keeps passive resources neutral and matches watched videos mo
     const video = result.allActivities.find((item) => item.type === 'Page');
     const file = result.allActivities.find((item) => item.type === 'File');
     const otherWeekUrl = result.allActivities.find((item) => item.weekNum === core.OTHER_WEEK_NUM);
+    const notice = result.allActivities.find((item) => item.type === '공지사항');
 
     assert.equal(Boolean(video), true);
     assert.equal(video.isCompleted, true);
@@ -101,6 +105,29 @@ test('data service keeps passive resources neutral and matches watched videos mo
     assert.equal(file.statusText, '-');
 
     assert.equal(otherWeekUrl, undefined);
+    assert.equal(notice.courseName, '테스트 강의');
+    assert.equal(notice.weekNum, 2);
+    assert.equal(notice.href, 'https://learn.hoseo.ac.kr/mod/ubboard/read.php?id=1136930&articleid=10');
+    assert.equal(notice.optionsHtml, '03.12');
+    assert.equal(notice.isNeutral, true);
+    assert.equal(result.allActivities.filter((item) => !item.isCompleted && !item.isNeutral).includes(notice), false);
+});
+
+test('data service keeps notice-board failures as course warnings', async function () {
+    const attendanceHtml = '<title>테스트 강의 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="1주차 [03.01~03.07]"></a></div></div>';
+    const courseViewHtml = '<ul class="weeks"><li class="section main"><h3 class="sectionname">공지사항</h3><ul><li class="activity"><img class="activityicon" alt="게시판"><a class="aalink" href="/mod/ubboard/view.php?id=1136930">공지사항</a></li></ul></li></ul>';
+
+    global.fetch = async function (url) {
+        if (url.includes('/local/ubonattend/my_status.php')) return createResponse(attendanceHtml, url);
+        if (url.includes('/mod/assign/index.php') || url.includes('/mod/quiz/index.php')) return createResponse('<table class="generaltable"></table>', url);
+        if (url.includes('/course/view.php')) return createResponse(courseViewHtml, url);
+        if (url.includes('/mod/ubboard/view.php')) throw new Error('network error');
+        throw new Error('Unexpected URL: ' + url);
+    };
+
+    const result = await dataService.create(createRuntime()).fetchAllCourseData(['101']);
+    assert.equal(result.allActivities.length, 0);
+    assert.equal(result.warnings.some(function (warning) { return warning.includes('테스트 강의: 테스트 강의 공지사항 요청에 실패했습니다.'); }), true);
 });
 
 test('data service falls back to course-wide matching when week parsing differs', async function () {
