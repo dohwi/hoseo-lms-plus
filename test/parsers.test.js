@@ -167,6 +167,15 @@ test('parseUbboardNoticePage parses safe notice posts with table and list fallba
     assert.equal(result.some(function (notice) { return notice.nameHtml.includes('게시판 이동'); }), false);
 });
 
+test('parseUbboardNoticePage caps candidates and title input length', function () {
+    const rows = Array.from({ length: parsers.MAX_NOTICE_CANDIDATES + 5 }, function (_, index) {
+        return '<tr><td><a href="/mod/ubboard/read.php?articleid=' + index + '">' + '제목'.repeat(400) + '</a></td><td>2026.03.12</td></tr>';
+    }).join('');
+    const result = parsers.parseUbboardNoticePage('<table><tbody>' + rows + '</tbody></table>', '101', '테스트', {}, 'https://learn.hoseo.ac.kr', new Date('2026-03-15'), 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1');
+    assert.equal(result.length, parsers.MAX_NOTICE_CANDIDATES);
+    assert.equal(result[0].nameHtml.length <= 500, true);
+});
+
 test('parseQuizAttemptStatus detects completed attempts', function () {
     const result = parsers.parseQuizAttemptStatus('<div class="quizattemptsummary"><div class="statedetails">제출됨 2026-03-19</div></div>');
     assert.equal(result.isCompleted, true);
