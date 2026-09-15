@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const zlib = require('node:zlib');
 
 const STATIC_ENTRIES = new Set([
     'manifest.json',
@@ -55,7 +56,36 @@ function readZipEntries(zipPath) {
             throw new Error('Invalid ZIP: central directory entry exceeds archive bounds');
         }
 
-        entries.push(buffer.subarray(offset + 46, offset + 46 + nameLength).toString('utf8'));
+        const name = buffer.subarray(offset + 46, offset + 46 + nameLength).toString('utf8');
+        const compressionMethod = buffer.readUInt16LE(offset + 10);
+        const expectedCrc = buffer.readUInt32LE(offset + 16);
+        const compressedSize = buffer.readUInt32LE(offset + 20);
+        const uncompressedSize = buffer.readUInt32LE(offset + 24);
+        const localOffset = buffer.readUInt32LE(offset + 42);
+        if (localOffset + 30 > buffer.length || buffer.readUInt32LE(localOffset) !== 0x04034b50) {
+            throw new Error('Invalid ZIP: malformed local file header for ' + name);
+        }
+        const localNameLength = buffer.readUInt16LE(localOffset + 26);
+        const localExtraLength = buffer.readUInt16LE(localOffset + 28);
+        const localName = buffer.subarray(localOffset + 30, localOffset + 30 + localNameLength).toString('utf8');
+        if (localName !== name) throw new Error('Invalid ZIP: local and central names differ for ' + name);
+        const dataStart = localOffset + 30 + localNameLength + localExtraLength;
+        const dataEnd = dataStart + compressedSize;
+        if (dataEnd > buffer.length) throw new Error('Invalid ZIP: compressed data exceeds archive bounds for ' + name);
+        const compressed = buffer.subarray(dataStart, dataEnd);
+        let content;
+        if (compressionMethod === 0) content = compressed;
+        else if (compressionMethod === 8) content = zlib.inflateRawSync(compressed);
+        else throw new Error('Invalid ZIP: unsupported compression method for ' + name);
+        if (content.length !== uncompressedSize) throw new Error('Invalid ZIP: size mismatch for ' + name);
+        let crc = 0xFFFFFFFF;
+        for (const byte of content) {
+            crc ^= byte;
+            for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+        }
+        if (((crc ^ 0xFFFFFFFF) >>> 0) !== expectedCrc) throw new Error('Invalid ZIP: CRC mismatch for ' + name);
+
+        entries.push(name);
         offset = entryEnd;
     }
 

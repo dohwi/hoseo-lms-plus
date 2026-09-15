@@ -42,6 +42,8 @@ ES2022, `sourceType: 'script'` (ESM 아님), 번들러 없음.
 키 형식: lms_plus_cache:v{CACHE_VERSION}:{userId}:{sortedCourseIds,}
 예: lms_plus_cache:v7:101:202,303,404
 
+캐시 데이터는 필수 배열 필드와 `sessionExpired` 타입을 검증하며, 직렬화 크기가 4 MiB를 초과하거나 사용자를 식별할 수 없는 경우 저장·사용하지 않습니다. LMS 응답은 2 MiB로 제한하고 URL은 `https://learn.hoseo.ac.kr` 동일 출처만 허용합니다.
+
 TTL: 6시간 (CACHE_TTL = 21600000ms)
 저장소: chrome.storage.local (비동기) 우선, localStorage (동기) fallback
 ```

@@ -340,7 +340,10 @@ test('info modal isolates dashboard content and restores it on close and teardow
     const title = doc.querySelector('.lms-title-wrap');
     infoButton.focus();
     infoButton.click();
+    const modal = doc.querySelector('.lms-info-tooltip');
     assert.equal(title.getAttribute('aria-hidden'), 'true');
+    assert.equal(modal.getAttribute('aria-hidden'), null);
+    assert.equal(modal.querySelector('.lms-info-popup-panel').getAttribute('aria-hidden'), null);
     assert.equal(doc.activeElement.className, 'lms-info-popup-close');
     const tabEvent = new dom.window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
     doc.dispatchEvent(tabEvent);

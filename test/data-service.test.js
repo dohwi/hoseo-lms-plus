@@ -233,6 +233,13 @@ test('data service detects login forms, response limits, and memoizes duplicate 
     assert.equal(oversized.warnings.every(function (warning) { return warning.includes('응답 크기가 허용 한도를 초과했습니다.'); }), true);
 });
 
+test('data service does not mistake ordinary userid forms for login', async function () {
+    const ordinaryForm = '<form action="/mod/assign/view.php"><input type="hidden" name="userid" value="101"></form>';
+    global.fetch = async function (url) { return createResponse(ordinaryForm, url); };
+    const result = await dataService.create(createRuntime()).fetchAllCourseData([{ id: '101', isIrregular: false }]);
+    assert.equal(result.sessionExpired, false);
+});
+
 test('data service caps detail requests with deterministic priority', async function () {
     const attendance = '<title>강의 학습관리시스템(LMS)</title>';
     const assignments = '<table class="generaltable"><tbody>' + [1, 2, 3].map(function (id) { return '<tr><td>1주</td><td><a href="/mod/assign/view.php?id=' + id + '">과제 ' + id + '</a></td><td>2026-03-0' + id + '</td><td>미제출</td><td>-</td></tr>'; }).join('') + '</tbody></table>';
@@ -249,6 +256,23 @@ test('data service caps detail requests with deterministic priority', async func
     const result = await service.fetchAllCourseData([{ id: '101', isIrregular: false }]);
     assert.equal(fetched.filter(function (url) { return url.includes('/mod/assign/view.php'); }).length, 1);
     assert.equal(result.warnings.some(function (warning) { return warning.includes('요청 한도'); }), true);
+});
+
+test('data service distributes detail request limits deterministically across courses', async function () {
+    const attendance = '<title>강의 학습관리시스템(LMS)</title>';
+    const assignments = '<table class="generaltable"><tbody><tr><td>1주</td><td><a href="/mod/assign/view.php?id=1">과제</a></td><td>2026-03-02</td><td>미제출</td><td>-</td></tr></tbody></table>';
+    const detailUrls = [];
+    global.fetch = async function (url) {
+        if (url.includes('ubonattend')) return createResponse(attendance, url);
+        if (url.includes('assign/index')) return createResponse(assignments, url);
+        if (url.includes('quiz/index')) return createResponse('<table class="generaltable"></table>', url);
+        if (url.includes('course/view')) return createResponse('', url);
+        if (url.includes('/mod/assign/view.php')) detailUrls.push(url);
+        return createResponse('', url);
+    };
+    const service = dataService.create(Object.assign(createRuntime(), { maxDetailRequests: 1, now: function () { return new Date('2026-03-02'); } }));
+    await service.fetchAllCourseData([{ id: '101', isIrregular: false }, { id: '102', isIrregular: false }]);
+    assert.equal(detailUrls.length, 1);
 });
 
 test('data service reports request timeouts instead of hanging', async function () {
