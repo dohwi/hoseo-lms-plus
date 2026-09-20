@@ -3,10 +3,10 @@
   <p>호서대학교 LMS 온라인 출석, 과제, 퀴즈, 공지사항 주차별 통합 대시보드</p>
 
   <p>
-    <a href="https://github.com/dohwi/hoseo-lms-plus/releases/latest"><img src="https://img.shields.io/github/v/release/dohwi/hoseo-lms-plus?display_name=tag&style=flat-square" /></a>
-    <a href="https://github.com/dohwi/hoseo-lms-plus/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/dohwi/hoseo-lms-plus/ci.yml?branch=main&style=flat-square&label=CI" /></a>
-    <a href="https://chromewebstore.google.com/detail/%ED%98%B8%EC%84%9C-lms+/elhbledijdmffjdaplamdkejdgpiddpd?hl=ko"><img src="https://img.shields.io/badge/Chrome-Web%20Store-4285F4?style=flat-square&logo=googlechrome&logoColor=white" /></a>
-    <a href="https://addons.mozilla.org/ko/firefox/addon/%ED%98%B8%EC%84%9C-lms/"><img src="https://img.shields.io/badge/Firefox-Add--ons-FF7139?style=flat-square&logo=firefoxbrowser&logoColor=white" /></a>
+    <a href="https://github.com/dohwi/hoseo-lms-plus/releases/latest" target="_blank" rel="noreferrer"><img src="https://img.shields.io/github/v/release/dohwi/hoseo-lms-plus?display_name=tag&style=flat-square" /></a>
+    <a href="https://github.com/dohwi/hoseo-lms-plus/actions/workflows/ci.yml" target="_blank" rel="noreferrer"><img src="https://img.shields.io/github/actions/workflow/status/dohwi/hoseo-lms-plus/ci.yml?branch=main&style=flat-square&label=CI" /></a>
+    <a href="https://chromewebstore.google.com/detail/%ED%98%B8%EC%84%9C-lms+/elhbledijdmffjdaplamdkejdgpiddpd?hl=ko" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Chrome-Web%20Store-4285F4?style=flat-square&logo=googlechrome&logoColor=white" /></a>
+    <a href="https://addons.mozilla.org/ko/firefox/addon/%ED%98%B8%EC%84%9C-lms/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Firefox-Add--ons-FF7139?style=flat-square&logo=firefoxbrowser&logoColor=white" /></a>
   </p>
 </div>
 
