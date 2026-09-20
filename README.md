@@ -1,11 +1,16 @@
-# 호서 LMS+
+<div align="center">
+  <h1>호서 LMS+</h1>
+  <p>호서대학교 LMS 온라인 출석, 과제, 퀴즈, 공지사항 주차별 통합 대시보드</p>
 
-> 호서대학교 LMS의 온라인 출석, 과제, 퀴즈, 공지사항을 주차별로 한눈에 확인하는 비공식 브라우저 확장 프로그램입니다.
+  <p>
+    <a href="https://github.com/dohwi/hoseo-lms-plus/releases/latest"><img src="https://img.shields.io/github/v/release/dohwi/hoseo-lms-plus?display_name=tag&style=flat-square" /></a>
+    <a href="https://github.com/dohwi/hoseo-lms-plus/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/dohwi/hoseo-lms-plus/ci.yml?branch=main&style=flat-square&label=CI" /></a>
+    <a href="https://chromewebstore.google.com/detail/%ED%98%B8%EC%84%9C-lms+/elhbledijdmffjdaplamdkejdgpiddpd?hl=ko"><img src="https://img.shields.io/badge/Chrome-Web%20Store-4285F4?style=flat-square&logo=googlechrome&logoColor=white" /></a>
+    <a href="https://addons.mozilla.org/ko/firefox/addon/%ED%98%B8%EC%84%9C-lms/"><img src="https://img.shields.io/badge/Firefox-Add--ons-FF7139?style=flat-square&logo=firefoxbrowser&logoColor=white" /></a>
+  </p>
+</div>
 
-[![Latest Release](https://img.shields.io/github/v/release/dohwi/hoseo-lms-plus?display_name=tag&style=flat-square)](https://github.com/dohwi/hoseo-lms-plus/releases/latest)
-[![CI](https://img.shields.io/github/actions/workflow/status/dohwi/hoseo-lms-plus/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/dohwi/hoseo-lms-plus/actions/workflows/ci.yml)
-[![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/%ED%98%B8%EC%84%9C-lms+/elhbledijdmffjdaplamdkejdgpiddpd?hl=ko)
-[![Firefox Add-ons](https://img.shields.io/badge/Firefox-Add--ons-FF7139?style=flat-square&logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/ko/firefox/addon/%ED%98%B8%EC%84%9C-lms/)
+---
 
 호서 LMS+는 기존 LMS 화면을 변경하거나 외부 서버로 정보를 전송하지 않습니다. 로그인된 LMS 세션을 이용해 필요한 페이지를 같은 출처에서 조회하고, 결과를 브라우저 확장 로컬 저장소에 임시 캐시합니다.
 
