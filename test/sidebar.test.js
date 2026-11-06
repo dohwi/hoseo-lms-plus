@@ -29,3 +29,20 @@ test('sidebar injects dashboard tab and opens dashboard on click', function () {
 
     app.cleanup();
 });
+
+test('sidebar cleanup removes the injected tab and stops reinjecting it', function () {
+    const dom = new JSDOM('<!doctype html><html><body><div id="mCSB_1_container"><ul></ul></div></body></html>');
+    global.window = dom.window;
+    global.document = dom.window.document;
+    global.MutationObserver = dom.window.MutationObserver;
+
+    const app = sidebar.create({ document: dom.window.document, onOpenDashboard: function () {} });
+    app.start();
+    assert.ok(dom.window.document.getElementById('lms-calendar-tab'));
+
+    app.cleanup();
+    assert.equal(dom.window.document.getElementById('lms-calendar-tab'), null);
+
+    app.cleanup();
+    assert.equal(dom.window.document.getElementById('lms-calendar-tab'), null);
+});

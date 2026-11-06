@@ -68,7 +68,7 @@
         sidebarApp = sidebar.create({
             document: document,
             onOpenDashboard: function () {
-                dashboard.replacePageContent(false);
+                if (dashboard) dashboard.replacePageContent(false);
             }
         });
 

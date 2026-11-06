@@ -241,13 +241,13 @@ test('createAsyncCacheStore evicts old caches and retries after quota failure', 
 test('cache stores reject invalid and oversized payloads', async function () {
     const storage = { data: {}, get length() { return 0; }, key() { return null; }, getItem(key) { return this.data[key] || null; }, setItem(key, value) { this.data[key] = value; }, removeItem(key) { delete this.data[key]; } };
     const cache = core.createCacheStore(storage);
-    cache.set('lms_plus_cache:v7:u:bad', {});
-    cache.set('lms_plus_cache:v7:u:large', cachePayload({ warnings: ['x'.repeat(core.CACHE_MAX_PAYLOAD_BYTES)] }));
+    cache.set('lms_plus_cache:v8:u:bad', {});
+    cache.set('lms_plus_cache:v8:u:large', cachePayload({ warnings: ['x'.repeat(core.CACHE_MAX_PAYLOAD_BYTES)] }));
     assert.deepEqual(storage.data, {});
 
     const fallback = { setItem() { throw new Error('fallback must not be used'); }, getItem() { throw new Error('fallback must not be used'); }, removeItem() {} };
     const asyncCache = core.createAsyncCacheStore({ async set() { throw new Error('storage failure'); }, async get() { throw new Error('storage failure'); }, async remove() {} }, fallback);
-    await asyncCache.set('lms_plus_cache:v7:u:1', cachePayload());
+    await asyncCache.set('lms_plus_cache:v8:u:1', cachePayload());
 });
 
 test('request queue enforces concurrency and cancellation', async function () {

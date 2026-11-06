@@ -7,7 +7,7 @@ const test = require('node:test');
 const { assertEntriesAllowed, assertZipAllowed, isAllowedEntry, readZipEntries } = require('../scripts/zip-policy');
 
 const rootDir = path.resolve(__dirname, '..');
-const zipPath = path.join(rootDir, 'dist', 'chrome', 'hoseo-lms-plus-chrome-v1.4.3.zip');
+const zipPath = path.join(rootDir, 'dist', 'chrome', 'hoseo-lms-plus-chrome-v1.4.4.zip');
 
 function buildChrome() {
     execFileSync(process.execPath, ['scripts/build.js', 'chrome'], {

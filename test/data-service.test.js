@@ -369,3 +369,20 @@ test('data service remaps course-specific week numbers to the shared calendar by
     assert.equal(assign.weekNum, 8);
     assert.equal(result.allActivities.find((item) => item.courseId === '2').weekNum, 8);
 });
+
+test('data service assigns a due date inside a week that spans the new year', async function () {
+    const year = new Date().getFullYear();
+    const attendanceHtml = '<title>강의 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="16주차 [12월 28일 - 01월 03일]"></a></div></div>';
+    const assignHtml = '<table class="generaltable"><tbody><tr><td></td><td><a href="/mod/assign/view.php?id=9">연말 과제</a></td><td>' + year + '-12-30 23:59</td><td>미제출</td><td>-</td></tr></tbody></table>';
+    const emptyHtml = '<table class="generaltable"><tbody></tbody></table>';
+    global.fetch = async function (url) {
+        if (url.includes('/local/ubonattend/my_status.php')) return createResponse(attendanceHtml, url);
+        if (url.includes('/mod/assign/index.php')) return createResponse(assignHtml, url);
+        if (url.includes('/mod/quiz/index.php')) return createResponse(emptyHtml, url);
+        if (url.includes('/course/view.php')) return createResponse('<ul class="weeks"></ul>', url);
+        throw new Error('Unexpected URL: ' + url);
+    };
+    const service = dataService.create(createRuntime());
+    const result = await service.fetchAllCourseData([{ id: '1', isIrregular: false }]);
+    assert.equal(result.allAssigns[0].weekNum, 16);
+});
