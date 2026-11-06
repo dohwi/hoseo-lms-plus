@@ -294,3 +294,78 @@ test('data service propagates queue cancellation', async function () {
 
     await assert.rejects(request, { name: 'AbortError' });
 });
+
+test('data service assigns weekless non-MOOC assignments by due date but keeps MOOC in other', async function () {
+    const year = new Date().getFullYear();
+    const attendanceHtml = '<title>테스트 강의 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="10주차 [11월 02일 - 11월 08일]"></a></div><div class="section-item"><a title="11주차 [11월 09일 - 11월 15일]"></a></div></div>';
+    const assignHtml = '<table class="generaltable"><tbody><tr><td></td><td><a href="/mod/assign/view.php?id=9">경진대회</a></td><td>' + year + '-11-15 23:59</td><td>제출 완료</td><td>-</td></tr></tbody></table>';
+    const emptyHtml = '<table class="generaltable"><tbody></tbody></table>';
+    const courseViewHtml = '<ul class="weeks"><li class="section main"><h3 class="sectionname">비교과</h3><ul><li class="activity"><img class="activityicon" alt="과제"><a class="aalink" href="/mod/assign/view.php?id=9"><span>경진대회</span></a><span class="displayoptions">' + year + '-11-02 00:00:00 ~ ' + year + '-11-15 23:59:00</span></li></ul></li></ul>';
+
+    global.fetch = async function (url) {
+        if (url.includes('/local/ubonattend/my_status.php')) return createResponse(attendanceHtml, url);
+        if (url.includes('/mod/assign/index.php')) return createResponse(assignHtml, url);
+        if (url.includes('/mod/quiz/index.php')) return createResponse(emptyHtml, url);
+        if (url.includes('/course/view.php')) return createResponse(courseViewHtml, url);
+        throw new Error('Unexpected URL: ' + url);
+    };
+    const service = dataService.create(createRuntime());
+
+    const regular = await service.fetchAllCourseData([{ id: '1', isIrregular: false }]);
+    assert.equal(regular.allAssigns[0].weekNum, 11);
+    assert.equal(regular.allActivities[0].weekNum, 11);
+
+    const mooc = await service.fetchAllCourseData([{ id: '2', isIrregular: true }]);
+    assert.equal(mooc.allAssigns[0].weekNum, core.OTHER_WEEK_NUM);
+});
+
+test('data service picks the week shared by most courses when week numbers differ per course', async function () {
+    const year = new Date().getFullYear();
+    const regularAttendance = '<title>일반 강의 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="5주차 [09월 28일 - 10월 04일]"></a></div><div class="section-item"><a title="6주차 [10월 05일 - 10월 11일]"></a></div></div>';
+    const rebornAttendance = '<title>비교과 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="5주차 [10월 26일 - 11월 01일]"></a></div></div>';
+    const assignHtml = '<table class="generaltable"><tbody><tr><td></td><td><a href="/mod/assign/view.php?id=9">활동일지</a></td><td>' + year + '-10-04 23:59</td><td>미제출</td><td>-</td></tr></tbody></table>';
+    const emptyHtml = '<table class="generaltable"><tbody></tbody></table>';
+    const view = '<ul class="weeks"><li class="section main"><h3 class="sectionname">오리엔테이션</h3><ul><li class="activity"><img class="activityicon" alt="과제"><a class="aalink" href="/mod/assign/view.php?id=9"><span>활동일지</span></a><span class="displayoptions">' + year + '-09-28 00:00:00 ~ ' + year + '-10-04 23:59:00</span></li></ul></li><li class="section main"><h3 class="sectionname">5주차 [09월 28일 - 10월 04일]</h3><ul><li class="activity"><img class="activityicon" alt="게시판" src="https://x/ubboard/icon"><a class="aalink" href="/mod/ubboard/view.php?id=77"><span>5주차 Q&amp;A 게시판</span></a></li></ul></li></ul>';
+
+    global.fetch = async function (url) {
+        const isReborn = url.includes('id=2');
+        if (url.includes('/local/ubonattend/my_status.php')) return createResponse(isReborn ? rebornAttendance : regularAttendance, url);
+        if (url.includes('/mod/assign/index.php')) return createResponse(isReborn ? assignHtml : emptyHtml, url);
+        if (url.includes('/mod/quiz/index.php')) return createResponse(emptyHtml, url);
+        if (url.includes('/course/view.php')) return createResponse(isReborn ? view : '<ul class="weeks"></ul>', url);
+        throw new Error('Unexpected URL: ' + url);
+    };
+    const service = dataService.create(createRuntime());
+    const result = await service.fetchAllCourseData([{ id: '1', isIrregular: false }, { id: '2', isIrregular: false }]);
+
+    const assign = result.allAssigns.find((item) => item.courseId === '2');
+    assert.equal(assign.weekNum, 5);
+    assert.equal(assign.periodStr, '[09월 28일 - 10월 04일]');
+    const qna = result.allActivities.find((item) => item.type === '게시판');
+    assert.equal(Boolean(qna), true);
+    assert.equal(qna.isNeutral, true);
+    assert.equal(qna.statusText, '-');
+});
+
+test('data service remaps course-specific week numbers to the shared calendar by period date', async function () {
+    const year = new Date().getFullYear();
+    const regularAttendance = '<title>일반 강의 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="8주차 [10월 26일 - 11월 01일]"></a></div></div>';
+    const rebornAttendance = '<title>비교과 학습관리시스템(LMS)</title><div id="modal-coursemos-sections"><div class="section-item"><a title="5주차 [10월 26일 - 11월 01일]"></a></div></div>';
+    const assignHtml = '<table class="generaltable"><tbody><tr><td>5주차 [10월 26일 - 11월 01일]</td><td><a href="/mod/assign/view.php?id=9">활동일지(5)</a></td><td>' + year + '-11-01 23:59</td><td>미제출</td><td>-</td></tr></tbody></table>';
+    const emptyHtml = '<table class="generaltable"><tbody></tbody></table>';
+    const view = '<ul class="weeks"><li class="section main"><h3 class="sectionname">5주차 [10월 26일 - 11월 01일]</h3><ul><li class="activity"><img class="activityicon" alt="과제"><a class="aalink" href="/mod/assign/view.php?id=9"><span>활동일지(5)</span></a></li></ul></li></ul>';
+
+    global.fetch = async function (url) {
+        const isReborn = url.includes('id=2');
+        if (url.includes('/local/ubonattend/my_status.php')) return createResponse(isReborn ? rebornAttendance : regularAttendance, url);
+        if (url.includes('/mod/assign/index.php')) return createResponse(isReborn ? assignHtml : emptyHtml, url);
+        if (url.includes('/mod/quiz/index.php')) return createResponse(emptyHtml, url);
+        if (url.includes('/course/view.php')) return createResponse(isReborn ? view : '<ul class="weeks"></ul>', url);
+        throw new Error('Unexpected URL: ' + url);
+    };
+    const service = dataService.create(createRuntime());
+    const result = await service.fetchAllCourseData([{ id: '1', isIrregular: false }, { id: '2', isIrregular: false }, { id: '3', isIrregular: false }]);
+    const assign = result.allAssigns.find((item) => item.courseId === '2');
+    assert.equal(assign.weekNum, 8);
+    assert.equal(result.allActivities.find((item) => item.courseId === '2').weekNum, 8);
+});

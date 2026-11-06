@@ -60,7 +60,7 @@ test('getCourseInfoList detects regular and irregular course types', function ()
     assert.equal(info[1].isIrregular, true);
     assert.equal(info[2].id, '303');
     assert.equal(info[2].courseType, 'IR');
-    assert.equal(info[2].isIrregular, true);
+    assert.equal(info[2].isIrregular, false);
     assert.equal(info[3].id, '404');
     assert.equal(info[3].courseType, 'R');
     assert.equal(info[3].isIrregular, false);

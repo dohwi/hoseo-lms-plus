@@ -1,7 +1,7 @@
 {
   "name": "hoseo-lms-plus",
   "private": true,
-  "version": "1.4.2",
+  "version": "1.4.3",
   "scripts": {
     "lint": "eslint .",
     "lint:firefox": "npm run build:firefox && web-ext lint -s dist/firefox",

@@ -312,7 +312,7 @@ test('renderDashboard includes info tooltip with status criteria', function () {
     assert.match(tooltip.textContent, /아직 시작 기간이 되지 않은 항목/);
     assert.match(tooltip.textContent, /시작 기간은 지났지만 마감까지 8일 이상 남은 미완료 항목/);
     assert.match(tooltip.textContent, /완료 상태를 판정하지 않는 항목/);
-    assert.equal(doc.querySelectorAll('.lms-info-tooltip-badge').length, 6);
+    assert.equal(doc.querySelectorAll('.lms-info-tooltip-badge').length, 7);
     assert.equal(tooltip.querySelector('.lms-info-tooltip-badge-urgent').textContent, '마감 임박');
     assert.equal(tooltip.querySelector('.lms-info-tooltip-badge-notice').textContent, '공지사항');
     assert.match(tooltip.textContent, /어떤 주차에도 포함되지 않으면 기타/);
@@ -394,4 +394,47 @@ test('renderDashboard renders footer disclaimer text', function () {
     assert.ok(footerLink);
     assert.equal(footerLink.getAttribute('href'), 'mailto:me@dohwi.com');
     assert.equal(footerLink.getAttribute('title'), '이메일 보내기');
+});
+
+test('renderDashboard marks incomplete past-due items as overdue', function () {
+    const past = new Date();
+    past.setDate(past.getDate() - 10);
+    const pad = (n) => String(n).padStart(2, '0');
+    const text = past.getFullYear() + '-' + pad(past.getMonth() + 1) + '-' + pad(past.getDate());
+    const activity = {
+        courseId: '1', courseName: '강의', weekNum: 5, periodStr: '', type: '과제',
+        href: 'https://learn.hoseo.ac.kr/mod/assign/view.php?id=1', nameHtml: '지난 과제',
+        optionsHtml: text + ' 00:00:00 ~ ' + text + ' 23:59:00', statusText: '미제출', isCompleted: false, isNeutral: false
+    };
+    const localDoc = new JSDOM('<!doctype html><html><body><div id="m"></div></body></html>').window.document;
+    ui.renderDashboard(localDoc, localDoc.getElementById('m'), {
+        week: 5, periodStr: '', activities: [activity], incActivities: [activity], courseNames: [{ courseName: '강의' }],
+        warnings: [], canPrev: false, canNext: false, baseUrl: 'https://learn.hoseo.ac.kr', version: '1.4.3', handlers: {}
+    });
+    assert.equal(localDoc.querySelectorAll('.lms-row-overdue').length >= 1, true);
+    assert.equal(localDoc.querySelector('.lms-state-badge-overdue'), null);
+    assert.equal(localDoc.querySelector('.lms-row-danger'), null);
+    assert.equal(localDoc.querySelector('.lms-row-overdue td:last-child').textContent, '마감');
+});
+
+test('renderDashboard marks overdue incomplete videos with period as 마감', function () {
+    const pad = (n) => String(n).padStart(2, '0');
+    const fmt = (offset) => {
+        const d = new Date();
+        d.setDate(d.getDate() + offset);
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    };
+    const video = {
+        courseId: '1', courseName: '강의', weekNum: 5, periodStr: '', type: '동영상',
+        href: 'https://learn.hoseo.ac.kr/mod/vod/view.php?id=1', nameHtml: '지난 강의 영상',
+        optionsHtml: fmt(-14) + ' 00:00:00 ~ ' + fmt(-3) + ' 23:59:00<br><span class="lms-extra-info">요구/누적: 29:04 / 10:00</span>',
+        statusText: '미완료', isCompleted: false, isNeutral: false
+    };
+    const localDoc = new JSDOM('<!doctype html><html><body><div id="m"></div></body></html>').window.document;
+    ui.renderDashboard(localDoc, localDoc.getElementById('m'), {
+        week: 5, periodStr: '', activities: [video], incActivities: [video], courseNames: [{ courseName: '강의' }],
+        warnings: [], canPrev: false, canNext: false, baseUrl: 'https://learn.hoseo.ac.kr', version: '1.4.3', handlers: {}
+    });
+    assert.equal(localDoc.querySelector('.lms-row-overdue td:last-child').textContent, '마감');
+    assert.equal(localDoc.querySelector('.lms-state-badge-overdue'), null);
 });

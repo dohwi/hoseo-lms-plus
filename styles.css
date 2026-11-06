@@ -12,6 +12,8 @@
     --lms-row-success: #f6fdf8;
     --lms-row-danger: #fff8f8;
     --lms-row-warning: #fff9e8;
+    --lms-row-overdue: #f4eefb;
+    --lms-overdue: #6f42a8;
     --lms-text: #333;
     --lms-text-light: #777;
 }
@@ -230,6 +232,13 @@
     border-width: 2px 3px;
     border-color: var(--lms-danger);
     color: var(--lms-danger);
+}
+
+.lms-info-tooltip-badge-overdue {
+    background: var(--lms-row-overdue);
+    border-width: 2px 3px;
+    border-color: var(--lms-overdue);
+    color: var(--lms-overdue);
 }
 
 .lms-info-tooltip-badge-warning {
@@ -565,6 +574,17 @@
     margin-right: 8px;
 }
 
+.lms-td-left a {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.lms-td-left a img {
+    flex: none;
+    vertical-align: baseline;
+}
+
 .lms-table a {
     color: var(--lms-primary);
     text-decoration: none;
@@ -671,14 +691,23 @@
     font-weight: 700;
 }
 
+.lms-title-line {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
 .lms-state-badge {
-    display: inline-block;
-    margin-right: 7px;
-    padding: 2px 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    height: 20px;
+    padding: 0 8px;
     border-radius: 999px;
     font-size: 11px;
     font-weight: 700;
-    vertical-align: 1px;
+    line-height: 1;
 }
 
 .lms-state-badge-urgent {
@@ -772,6 +801,30 @@
 
 .lms-row-danger {
     background-color: var(--lms-row-danger);
+}
+
+.lms-row-overdue td:not(.lms-td-course) {
+    background-color: var(--lms-row-overdue) !important;
+    border-top: 2px solid var(--lms-overdue) !important;
+    border-bottom: 2px solid var(--lms-overdue) !important;
+}
+
+.lms-row-overdue .lms-td-course + td,
+.lms-row-overdue td:first-child:not(.lms-td-course) {
+    border-left: 3px solid var(--lms-overdue) !important;
+}
+
+.lms-row-overdue td:last-child {
+    border-right: 3px solid var(--lms-overdue) !important;
+}
+
+.lms-row-overdue .lms-td-left,
+.lms-row-overdue .lms-td-left a {
+    color: #4f2f7a;
+}
+
+.lms-row-overdue .lms-status-fail {
+    color: var(--lms-overdue);
 }
 
 .lms-row-neutral {

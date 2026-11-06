@@ -299,3 +299,16 @@ test('parseQuizIndexPage keeps continuation rows in the same week', function () 
     assert.match(result[1].titleHtml, /4주차 퀴즈/);
     assert.equal(result[1].activityKey, '/mod/quiz/view.php?id=1052482');
 });
+
+test('parseCourseViewPage treats only the notice board as course notice, not Q&A boards', function () {
+    const html = `
+        <ul class="weeks"><li class="section"><h3 class="sectionname">10주차 [11월 02일 - 11월 08일]</h3><ul>
+            <li class="activity"><img class="activityicon" alt="게시판" src="https://learn.hoseo.ac.kr/theme/image.php/mod_icon/ubboard_notice"><a class="aalink" href="/mod/ubboard/view.php?id=1141817"><span>공지사항</span></a></li>
+            <li class="activity"><img class="activityicon" alt="게시판" src="https://learn.hoseo.ac.kr/theme/image.php/ubboard/icon"><a class="aalink" href="/mod/ubboard/view.php?id=1147758"><span>10주차 Q&amp;A 게시판-질문있으면 올리세요</span></a></li>
+        </ul></li></ul>`;
+    const result = parsers.parseCourseViewPage(html, '1', '테스트', {}, 'https://learn.hoseo.ac.kr');
+    assert.equal(result.length, 2);
+    assert.equal(result[0].isCourseNotice, true);
+    assert.equal(result[1].isCourseNotice, false);
+    assert.equal(result[1].isIgnoredType, true);
+});
