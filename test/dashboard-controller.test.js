@@ -345,3 +345,55 @@ test('dashboard refresh reuses saved course ids when dashboard is already mounte
     assert.equal(mount.getAttribute('data-message'), null);
     assert.equal(mount.getAttribute('data-courses'), '1');
 });
+
+test('dashboard controller ignores a fetch that finishes after cleanup or a newer refresh', async function () {
+    const dom = new JSDOM('<!doctype html><html><body><div class="lists"><div class="course" data-id="101"></div></div><div data-userid="u1"></div></body></html>', { url: 'https://learn.hoseo.ac.kr/' });
+    let rendered = 0;
+    const resolvers = [];
+    global.HoseoLmsPlusUi = {
+        buildHostMount: function (doc) {
+            const mount = doc.createElement('section');
+            mount.id = core.SELECTORS.dashboardMountId;
+            doc.body.appendChild(mount);
+            return { mount: mount, host: doc.body };
+        },
+        renderLoading: function () {},
+        renderMessage: function () { rendered += 1; },
+        renderDashboard: function () { rendered += 1; },
+        restoreHost: function () {},
+        updateProgress: function () {}
+    };
+    global.HoseoLmsPlusDataService = {
+        create: function () {
+            return { fetchAllCourseData: function () { return new Promise(function (resolve) { resolvers.push(resolve); }); } };
+        }
+    };
+    delete require.cache[require.resolve('../lib/dashboard-controller.js')];
+    const dc = require('../lib/dashboard-controller.js');
+    const result = { allItems: [{ weekNum: 1, periodStr: '[03.01~03.07]' }], allAssigns: [], allActivities: [], allCourseNames: [], warnings: [], sessionExpired: false };
+    const controller = dc.create({
+        document: dom.window.document, extensionStorage: null,
+        runtime: { resetRequestQueue: function () {} },
+        storage: { getItem: function () { return null; }, setItem: function () {}, removeItem: function () {}, key: function () { return null; }, length: 0 }
+    });
+    const tick = function () { return new Promise(function (resolve) { setTimeout(resolve, 0); }); };
+
+    controller.replacePageContent(false);
+    await tick();
+    controller.cleanup();
+    resolvers[0](result);
+    await tick();
+    assert.equal(rendered, 0);
+
+    controller.replacePageContent(false);
+    await tick();
+    controller.replacePageContent(true);
+    await tick();
+    resolvers[1](result);
+    await tick();
+    assert.equal(rendered, 0);
+    resolvers[2](result);
+    await tick();
+    assert.equal(rendered, 1);
+    controller.cleanup();
+});
