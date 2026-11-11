@@ -203,7 +203,8 @@ test('renderDashboard treats 7-day remaining tasks as urgent', function () {
     });
 
     assert.equal(doc.querySelector('.lms-row-urgent') !== null, true);
-    assert.equal(doc.querySelector('.lms-state-badge-urgent').textContent, '마감 임박');
+    assert.equal(doc.querySelector('.lms-state-badge'), null);
+    assert.doesNotMatch(doc.querySelector('.lms-row-urgent').textContent, /마감 임박/);
 });
 
 test('renderDashboard uses yellow warning rows for non-urgent incomplete items', function () {
