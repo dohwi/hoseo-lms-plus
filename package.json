@@ -13,8 +13,8 @@
     "verify:zip": "node scripts/zip-policy.js"
   },
   "devDependencies": {
-    "eslint": "^10.13.0",
-    "globals": "^17.13.0",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
     "jsdom": "^26.0.0",
     "web-ext": "^10.8.0"
   }
