@@ -691,31 +691,6 @@
     font-weight: 700;
 }
 
-.lms-title-line {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.lms-state-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    height: 20px;
-    padding: 0 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.lms-state-badge-urgent {
-    border: 1px solid #d98c89;
-    background: #fff;
-    color: #a32622;
-}
-
 .lms-td-options {
     font-size: 0.9em;
     color: #666;

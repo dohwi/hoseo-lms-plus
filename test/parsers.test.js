@@ -167,6 +167,43 @@ test('parseUbboardNoticePage parses safe notice posts with table and list fallba
     assert.equal(result.some(function (notice) { return notice.nameHtml.includes('게시판 이동'); }), false);
 });
 
+test('parseUbboardNoticePage keeps title, link and date of the same row (pinned + latest)', function () {
+    const html = '<div class="card"><table><tbody>' +
+        '<tr><td class="t-number"><img alt="notice" src="n.png"></td><td class="t-subject"><a href="/mod/ubboard/article.php?id=1142759&bwid=238318">중간고사 장소 안내</a></td><td class="t-date"><span title="2026-10-06 13:53:09">10.06</span></td></tr>' +
+        '<tr><td class="t-number">1</td><td class="t-subject"><a href="/mod/ubboard/article.php?id=1142759&bwid=245068">중간고사 채점 결과</a> <span>N</span></td><td class="t-date"><span title="2026-11-11 13:10:40">11.11</span></td></tr>' +
+        '</tbody></table></div>';
+    const result = parsers.parseUbboardNoticePage(html, '1', '컴퓨터구조', {}, 'https://learn.hoseo.ac.kr', new Date('2026-11-12T12:00:00'), 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1142759');
+    assert.equal(result.length, 2);
+    const pinned = result.find(function (n) { return n.href.includes('bwid=238318'); });
+    const latest = result.find(function (n) { return n.href.includes('bwid=245068'); });
+    assert.match(pinned.nameHtml, /장소 안내/);
+    assert.equal(pinned.optionsHtml, '10.06');
+    assert.match(latest.nameHtml, /채점 결과/);
+    assert.equal(latest.optionsHtml, '11.11');
+});
+
+test('parseUbboardNoticePage strips the new-post N badge from the title', function () {
+    const html = '<table><tbody>' +
+        '<tr><td class="t-number">1</td><td class="t-subject"><a href="/mod/ubboard/article.php?id=1&bwid=2"><span class="new">N</span>중간고사 채점 결과</a></td><td class="t-date"><span title="2026-11-11 13:10:40">11.11</span></td></tr>' +
+        '<tr><td class="t-number">2</td><td class="t-subject"><a href="/mod/ubboard/article.php?id=1&bwid=3"><img src="new.gif" alt="new">두번째 <span>N</span></a></td><td class="t-date"><span title="2026-11-10 10:00:00">11.10</span></td></tr>' +
+        '</tbody></table>';
+    const result = parsers.parseUbboardNoticePage(html, '1', '과목', {}, 'https://learn.hoseo.ac.kr', new Date('2026-11-12T12:00:00'), 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1');
+    assert.equal(result.length, 2);
+    assert.equal(result[0].nameHtml, '중간고사 채점 결과');
+    assert.equal(result[1].nameHtml.trim(), '두번째');
+});
+
+test('parseUbboardNoticePage keeps titles wrapped in spans and hides screen-reader text', function () {
+    const html = '<table><tbody>' +
+        '<tr><td class="t-subject"><a href="/mod/ubboard/article.php?id=1&bwid=5"><span class="title-label">기말고사 안내</span><span class="accesshide">새 글</span></a></td><td class="t-date"><span title="2026-11-10 10:00:00">11.10</span></td></tr>' +
+        '<tr><td class="t-subject"><a href="/mod/ubboard/article.php?id=1&bwid=6"><span>Re</span></a></td><td class="t-date"><span title="2026-11-09 10:00:00">11.09</span></td></tr>' +
+        '</tbody></table>';
+    const result = parsers.parseUbboardNoticePage(html, '1', '과목', {}, 'https://learn.hoseo.ac.kr', new Date('2026-11-12T12:00:00'), 'https://learn.hoseo.ac.kr/mod/ubboard/view.php?id=1');
+    assert.equal(result.length, 2);
+    assert.equal(result[0].nameHtml.replace(/<[^>]+>/g, ''), '기말고사 안내');
+    assert.equal(result[1].nameHtml.replace(/<[^>]+>/g, ''), 'Re');
+});
+
 test('parseUbboardNoticePage caps candidates and title input length', function () {
     const rows = Array.from({ length: parsers.MAX_NOTICE_CANDIDATES + 5 }, function (_, index) {
         return '<tr><td><a href="/mod/ubboard/read.php?articleid=' + index + '">' + '제목'.repeat(400) + '</a></td><td>2026.03.12</td></tr>';
